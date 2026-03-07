@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>סווייפ בכנסת</title>
+<title>מצביעים על זה</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -382,7 +382,7 @@ h1.main-title {
   <div id="screen-loading" class="screen active">
     <div class="center">
       <div style="font-size:52px">🗳️</div>
-      <div style="color:#c9a84c;font-size:22px;font-weight:700">סווייפ בכנסת</div>
+      <div style="color:#c9a84c;font-size:22px;font-weight:700">מצביעים על זה</div>
       <div class="spinner"></div>
       <div id="load-msg" style="color:#7a9cc4;font-size:13px;font-family:monospace;max-width:300px"></div>
     </div>
@@ -403,7 +403,7 @@ h1.main-title {
     <div class="home-wrap">
       <div style="text-align:center;margin-bottom:32px">
         <div class="logo-badge">כנסת ישראל</div>
-        <h1 class="main-title">🗳️ סווייפ בכנסת</h1>
+        <h1 class="main-title">🗳️ מצביעים על זה</h1>
         <p class="subtitle">נחש איך הצביעו חברי הכנסת</p>
         <div class="gold-line"></div>
       </div>
@@ -429,7 +429,7 @@ h1.main-title {
       <div class="play-header">
         <button class="btn-back" onclick="showHome()">◄ חזור</button>
         <div style="flex:1">
-          <div class="play-vote-type">סווייפ בכנסת</div>
+          <div class="play-vote-type">מצביעים על זה</div>
           <div id="play-title" class="play-title"></div>
           <div id="play-date"  class="play-date"></div>
         </div>
@@ -521,7 +521,7 @@ h1.main-title {
 <!-- MODAL -->
 <div id="modal-instructions" class="modal-overlay" style="display:none" onclick="closeModal(event)">
   <div class="modal-box">
-    <div class="modal-title">🗳️ איך משחקים?</div>
+    <div class="modal-title">🗳️ מצביעים על זה — איך משחקים?</div>
     <div class="modal-steps">
       <div class="modal-step">
         <div class="modal-step-icon">📋</div>
@@ -894,7 +894,7 @@ function endGame(won) {
       user_vote:       gs.userVote ? (voteLabels[gs.userVote] || gs.userVote) : "דילג",
     }),
   }).catch(() => {});  // שגיאה שקטה — לא מפריעה למשחק
-  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" 🗳️ שחקו גם אתם!`);
+  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" במשחק "מצביעים על זה" 🗳️ שחקו גם אתם!`);
 
   document.getElementById("deck-area").style.display  = "none";
   document.getElementById("controls").style.display   = "none";
