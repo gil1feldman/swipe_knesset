@@ -493,9 +493,9 @@ h1.main-title {
       </div>
 
       <div class="swipe-hint" id="swipe-hint">
-        <span>⬅ נגד</span>
+        <span>⬅ בעד</span>
         <span>⬆ נמנע</span>
-        <span>בעד ➡</span>
+        <span>נגד ➡</span>
       </div>
 
       <div class="controls" id="controls">
@@ -831,7 +831,7 @@ function doSwipe(direction) {
 
   const card = document.getElementById("swipe-card");
   card.classList.add("animating");
-  card.classList.add(direction === "for" ? "fly-right" : direction === "against" ? "fly-left" : "fly-up");
+  card.classList.add(direction === "for" ? "fly-left" : direction === "against" ? "fly-right" : "fly-up");
 
   const mk      = gs.deck[gs.idx];
   const correct = mk.vote === direction;
@@ -949,8 +949,8 @@ function setupSwipe() {
     const su = document.getElementById("stamp-abstain");
     sf.style.opacity = sa.style.opacity = su.style.opacity = "0";
     if (ax > ay && ax > thr) {
-      if (dx > 0) sf.style.opacity = Math.min(1,(dx-thr)/70)+"";
-      else        sa.style.opacity = Math.min(1,(-dx-thr)/70)+"";
+      if (dx > 0) sa.style.opacity = Math.min(1,(dx-thr)/70)+"";
+      else        sf.style.opacity = Math.min(1,(-dx-thr)/70)+"";
     } else if (dy < -thr && ay > ax) {
       su.style.opacity = Math.min(1,(-dy-thr)/70)+"";
     }
@@ -960,7 +960,7 @@ function setupSwipe() {
     dragging = false;
     card.style.transition = "";
     const ax = Math.abs(dx), ay = Math.abs(dy);
-    if (ax > ay && ax > 80)       doSwipe(dx > 0 ? "for" : "against");
+    if (ax > ay && ax > 80)       doSwipe(dx > 0 ? "against" : "for");
     else if (dy < -80 && ay > ax) doSwipe("abstain");
     else {
       card.style.transition = "transform 0.28s cubic-bezier(0.34,1.56,0.64,1)";
