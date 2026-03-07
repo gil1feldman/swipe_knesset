@@ -411,7 +411,7 @@ h1.main-title {
       <div class="diff-wrap">
         <button class="diff-btn easy"          id="diff-easy"   onclick="setDiff('easy')">קל · 10</button>
         <button class="diff-btn medium active" id="diff-medium" onclick="setDiff('medium')">בינוני · 20</button>
-        <button class="diff-btn hard"          id="diff-hard"   onclick="setDiff('hard')">קשה · כולם</button>
+        <button class="diff-btn hard"          id="diff-hard"   onclick="setDiff('hard')">קשה · 30</button>
       </div>
 
       <div id="game-list" class="game-list" style="margin-top:14px"></div>
@@ -695,7 +695,7 @@ async function loadGames(bustCache = false) {
 }
 
 // ── Difficulty ─────────────────────────────────────────────
-const DIFF_COUNT = { easy: 10, medium: 20, hard: 999 };
+const DIFF_COUNT = { easy: 10, medium: 20, hard: 30 };
 let currentDiff = "medium";
 
 function setDiff(d) {
