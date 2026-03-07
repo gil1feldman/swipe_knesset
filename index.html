@@ -299,37 +299,6 @@ h1.main-title {
   padding-bottom: 2px; flex-shrink: 0; font-family: monospace;
 }
 
-/* Self-vote question (shown after reveal) */
-.self-vote-panel {
-  flex-shrink: 0;
-  background: rgba(201,168,76,0.07);
-  border: 1px solid rgba(201,168,76,0.22);
-  border-radius: 12px;
-  padding: 10px 12px 8px;
-  text-align: center;
-  display: none;
-}
-.self-vote-panel.visible { display: block; }
-.self-vote-q {
-  font-size: 12px; color: #c9a84c; font-weight: 700; margin-bottom: 8px;
-}
-.self-vote-btns {
-  display: flex; gap: 8px; justify-content: center;
-}
-.svb {
-  flex: 1; max-width: 100px;
-  padding: 7px 4px; border-radius: 9px; border: none;
-  font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
-  transition: transform 0.12s, opacity 0.12s;
-}
-.svb:active { transform: scale(0.93); }
-.svb.against { background: rgba(239,68,68,0.18); border: 1.5px solid rgba(239,68,68,0.45); color: #fca5a5; }
-.svb.abstain { background: rgba(245,158,11,0.12); border: 1.5px solid rgba(245,158,11,0.35); color: #fde68a; }
-.svb.for     { background: rgba(34,197,94,0.15);  border: 1.5px solid rgba(34,197,94,0.45);  color: #86efac; }
-.svb.selected { opacity: 1; transform: scale(1.07); }
-.svb.unselected { opacity: 0.35; }
-.self-vote-thanks { font-size: 11px; color: #7a9cc4; margin-top: 6px; min-height: 14px; }
-
 /* Reveal badge shown on card after swipe */
 .reveal-badge {
   position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
@@ -529,17 +498,6 @@ h1.main-title {
         <span>בעד ➡</span>
       </div>
 
-      <!-- Self-vote question — appears after each reveal -->
-      <div class="self-vote-panel" id="self-vote-panel">
-        <div class="self-vote-q">ואתה — איך היית מצביע?</div>
-        <div class="self-vote-btns">
-          <button class="svb against" onclick="recordSelfVote('against')">✗ נגד</button>
-          <button class="svb abstain" onclick="recordSelfVote('abstain')">↕ נמנע</button>
-          <button class="svb for"     onclick="recordSelfVote('for')">✓ בעד</button>
-        </div>
-        <div class="self-vote-thanks" id="self-vote-thanks"></div>
-      </div>
-
       <div class="controls" id="controls">
         <button class="ctrl-btn ctrl-against" onclick="doSwipe('against')">
           <span class="ctrl-icon">✗</span>
@@ -590,6 +548,25 @@ h1.main-title {
 
 <div class="feedback-flash" id="feedback-flash"></div>
 <div class="float-feedback"  id="float-feedback"></div>
+
+<!-- SELF-VOTE MODAL -->
+<div id="modal-self-vote" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">🤔 ואתה — איך היית מצביע?</div>
+    <p style="color:#7a9cc4;font-size:14px;margin:-8px 0 20px;line-height:1.6" id="self-vote-topic"></p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" style="background:rgba(239,68,68,0.18);border:1.5px solid rgba(239,68,68,0.5);color:#fca5a5;flex:1;min-width:80px"
+        onclick="submitSelfVote('against')">✗ נגד</button>
+      <button class="btn" style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.4);color:#fde68a;flex:1;min-width:80px"
+        onclick="submitSelfVote('abstain')">↕ נמנע</button>
+      <button class="btn" style="background:rgba(34,197,94,0.15);border:1.5px solid rgba(34,197,94,0.5);color:#86efac;flex:1;min-width:80px"
+        onclick="submitSelfVote('for')">✓ בעד</button>
+    </div>
+    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px">
+      דלג
+    </button>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════
@@ -769,7 +746,18 @@ let savedIdx = -1;
 
 function startGame(idx) {
   savedIdx = idx;
-  const game  = allGames[idx];
+  const game = allGames[idx];
+
+  // Ask the user how they'd vote — before showing any MKs
+  document.getElementById("self-vote-topic").textContent =
+    `"${game.shortName || game.title}"`;
+  document.getElementById("modal-self-vote").style.display = "flex";
+}
+
+function submitSelfVote(choice) {
+  document.getElementById("modal-self-vote").style.display = "none";
+
+  const game  = allGames[savedIdx];
   const count = Math.min(game.members.length, DIFF_COUNT[currentDiff]);
   const BIBI  = "נתניהו בנימין";
   const hasBibi = game.members.find(m => m.name === BIBI);
@@ -777,7 +765,7 @@ function startGame(idx) {
   const pool    = hasBibi ? [hasBibi, ...rest].slice(0, count) : rest.slice(0, count);
 
   gs = { game, deck: pool, idx: 0, score: 0, lives: 3, total: pool.length, over: false,
-         selfVotes: [] };  // {mkName, mkVote, selfVote}
+         userVote: choice };   // choice = 'for' | 'against' | 'abstain' | null
   locked = false;
 
   // Show deck, hide end
@@ -785,7 +773,6 @@ function startGame(idx) {
   document.getElementById("end-screen").style.display  = "none";
   document.getElementById("controls").style.display    = "flex";
   document.getElementById("swipe-hint").style.display  = "flex";
-  document.getElementById("self-vote-panel").classList.remove("visible");
 
   document.getElementById("play-title").textContent = game.shortName || game.title;
   document.getElementById("play-date").textContent  = game.date ? "📅 " + game.date : "";
@@ -819,10 +806,7 @@ function renderCard(first = false) {
     document.getElementById(id).style.opacity = "0";
   });
 
-  // Hide self-vote panel and reveal badge for new card
-  document.getElementById("self-vote-panel").classList.remove("visible");
-  document.getElementById("self-vote-thanks").textContent = "";
-  document.querySelectorAll(".svb").forEach(b => b.classList.remove("selected","unselected"));
+  // Reset reveal badge
   const rb = document.getElementById("reveal-badge");
   rb.className = "reveal-badge"; rb.textContent = "";
 
@@ -860,35 +844,17 @@ function doSwipe(direction) {
     showFeedback(false, `✗ טעות! הצביע ${labels[mk.vote] || "?"}`);
   }
 
-  // Show reveal badge on card briefly, then show self-vote question
+  // Show reveal badge briefly
   const rb = document.getElementById("reveal-badge");
   rb.textContent = `הצביע: ${labels[mk.vote]}`;
   rb.className   = `reveal-badge ${mk.vote} show`;
 
-  // Store pending self-vote slot (will be filled by recordSelfVote or skipped on next card)
-  gs._pendingMk = { mkName: mk.name, mkVote: mk.vote, selfVote: null };
-
   setTimeout(() => {
     locked = false;
     gs.idx++;
-
-    const svPanel = document.getElementById("self-vote-panel");
-    document.getElementById("self-vote-thanks").textContent = "";
-    document.querySelectorAll(".svb").forEach(b => b.classList.remove("selected","unselected"));
-    svPanel.classList.add("visible");
-
-    if (gs.lives <= 0) {
-      gs.over = true;
-      // Show self-vote briefly then end
-      setTimeout(() => endGame(false), 2200);
-    } else if (gs.idx >= gs.total) {
-      setTimeout(() => endGame(true), 2200);
-    } else {
-      // Next card renders after a pause (give time for self-vote)
-      setTimeout(() => {
-        if (!gs.over) renderCard();
-      }, 2000);
-    }
+    if (gs.lives <= 0) { gs.over = true; endGame(false); }
+    else if (gs.idx >= gs.total) { endGame(true); }
+    else { renderCard(); }
   }, 460);
 }
 
@@ -905,22 +871,6 @@ function showFeedback(correct, msg) {
   setTimeout(() => { text.classList.remove("show"); }, 1100);
 }
 
-function recordSelfVote(choice) {
-  if (!gs || !gs._pendingMk) return;
-  gs._pendingMk.selfVote = choice;
-  gs.selfVotes.push({ ...gs._pendingMk });
-  gs._pendingMk = null;
-
-  const labels = { for: "בעד ✓", against: "נגד ✗", abstain: "נמנע ↕" };
-  document.getElementById("self-vote-thanks").textContent = `רשמנו: ${labels[choice]}`;
-
-  // Highlight selected button
-  document.querySelectorAll(".svb").forEach(b => {
-    b.classList.toggle("selected",   b.classList.contains(choice));
-    b.classList.toggle("unselected", !b.classList.contains(choice));
-  });
-}
-
 function endGame(won) {
   gs.over = true; locked = false;
   const correct = Math.floor(gs.score / 100);
@@ -931,7 +881,6 @@ function endGame(won) {
   document.getElementById("deck-area").style.display  = "none";
   document.getElementById("controls").style.display   = "none";
   document.getElementById("swipe-hint").style.display = "none";
-  document.getElementById("self-vote-panel").classList.remove("visible");
   document.getElementById("end-screen").style.display = "flex";
 
   document.getElementById("end-screen-inner").innerHTML = `
