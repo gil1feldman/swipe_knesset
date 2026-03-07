@@ -976,7 +976,8 @@ function endGame(won) {
       user_vote:       gs.userVote ? (voteLabels[gs.userVote] || gs.userVote) : "דילג",
     }),
   }).catch(() => {});  // שגיאה שקטה — לא מפריעה למשחק
-  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" במשחק "מצביעים על זה" 🗳️ שחקו גם אתם!`);
+  const gameUrl   = "https://gil1feldman.github.io/swipe_knesset/";
+  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" במשחק "מצביעים על זה" 🗳️\nשחקו גם אתם: ${gameUrl}`);
 
   document.getElementById("deck-area").style.display  = "none";
   document.getElementById("controls").style.display   = "none";
