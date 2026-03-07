@@ -1,178 +1,999 @@
-function doGet(e) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>סווייפ בכנסת</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  // ── proxy לכנסת ──
-  if (e.parameter.voteId) {
-    const url = "https://www.knesset.gov.il/WebSiteApi/knessetapi/Votes/GetVoteDetails/" + e.parameter.voteId;
-    const response = UrlFetchApp.fetch(url);
-    return ContentService
-      .createTextOutput(response.getContentText())
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  // ── תוצאות משחק זיכרון ──
-  if (e.parameter.scores === "1") {
-    const difficulty = e.parameter.difficulty || "medium";
-    let sheet = ss.getSheetByName("תוצאות");
-    if (!sheet) return json([]);
-
-    const rows = sheet.getDataRange().getValues();
-    const data = rows.slice(1)
-      .filter(r => r[1] === difficulty)
-      .map(r => ({
-        timestamp: r[0], difficulty: r[1], pairs: r[2],
-        moves: r[3], time_seconds: r[4], accuracy: r[5],
-        vote_id: r[6], vote_short_name: r[7], vote_type: r[8],
-      }))
-      .sort((a, b) => a.moves !== b.moves ? a.moves - b.moves : a.time_seconds - b.time_seconds)
-      .slice(0, 20);
-    return json(data);
-  }
-
-  // ── לידרבורד משחק פיצוץ ──
-  if (e.parameter.blaster === "1") {
-    const difficulty = e.parameter.difficulty || "medium";
-    let sheet = ss.getSheetByName("תוצאות_משחק_פיצוץ");
-    if (!sheet) return json([]);
-
-    const rows = sheet.getDataRange().getValues();
-    const data = rows.slice(1)
-      .filter(r => r[1] === difficulty)
-      .map(r => ({
-        timestamp: r[0], difficulty: r[1],
-        hits: r[2], misses: r[3], accuracy: r[4],
-        vote_id: r[5], vote_short_name: r[6], vote_type: r[7],
-      }))
-      .sort((a, b) => b.hits !== a.hits ? b.hits - a.hits : b.accuracy - a.accuracy)
-      .slice(0, 20);
-    return json(data);
-  }
-
-  // ── לידרבורד משחק סווייפ ──
-  if (e.parameter.swipe === "1") {
-    const difficulty = e.parameter.difficulty || "medium";
-    const voteId     = e.parameter.vote_id    || "";
-    let sheet = ss.getSheetByName("swipe_kneset");
-    if (!sheet) return json([]);
-
-    const rows = sheet.getDataRange().getValues();
-    const data = rows.slice(1)
-      .filter(r => r[1] === difficulty && (!voteId || String(r[5]) === voteId))
-      .map(r => ({
-        timestamp:       r[0],
-        difficulty:      r[1],
-        correct:         r[2],
-        wrong:           r[3],
-        accuracy:        r[4],
-        vote_id:         r[5],
-        vote_short_name: r[6],
-        user_vote:       r[7],
-      }))
-      .sort((a, b) => b.accuracy !== a.accuracy ? b.accuracy - a.accuracy : b.correct - a.correct)
-      .slice(0, 20);
-    return json(data);
-  }
-
-  // ── רשימת הצבעות (פעילות בלבד) ──
-  const sheet = ss.getSheets()[0];
-  const rows = sheet.getDataRange().getValues();
-  const data = rows
-    .filter(r => String(r[0]).match(/^\d+$/))
-    .filter(r => String(r[3]).trim() === "כן")
-    .map(r => ({
-      voteId:    String(r[0]).trim(),
-      type:      String(r[1]).trim(),
-      shortName: String(r[2] || "").trim(),
-    }));
-  return json(data);
+body {
+  min-height: 100dvh;
+  background: linear-gradient(160deg, #0b1730 0%, #162354 55%, #0b1730 100%);
+  font-family: 'Frank Ruhl Libre', 'David Libre', Georgia, serif;
+  direction: rtl;
+  color: #fff;
+  overflow-x: hidden;
 }
 
-function doPost(e) {
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(201,168,76,0.07) 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+#app { position: relative; z-index: 1; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; gap: 18px; padding: 24px;
+  text-align: center;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(201,168,76,0.2);
+  border-top-color: #c9a84c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.btn {
+  padding: 11px 22px; border-radius: 10px; border: none;
+  color: #fff; font-weight: 700; font-size: 15px;
+  cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-blue  { background: linear-gradient(135deg, #1d3f8f, #2563eb); }
+.btn-gold  { background: linear-gradient(135deg, #92400e, #d97706); }
+.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #a0b4d4; }
+.btn-back  {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
+  color: #7a9cc4; border-radius: 8px; padding: 6px 13px;
+  cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
+}
+.btn-refresh {
+  background: transparent; border: 1px solid rgba(255,255,255,0.15);
+  color: #7a9cc4; border-radius: 8px; padding: 8px 20px;
+  cursor: pointer; font-size: 13px; font-family: inherit;
+}
+.error-box {
+  color: #fca5a5; font-size: 13px; font-family: monospace;
+  max-width: 380px; line-height: 1.7;
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 10px; padding: 12px 16px;
+}
+
+/* ══ HOME ══ */
+.home-wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px; }
+
+.logo-badge {
+  display: inline-block; border: 1px solid rgba(201,168,76,0.4);
+  padding: 3px 28px; margin-bottom: 10px; border-radius: 2px;
+  color: #c9a84c; font-size: 10px; letter-spacing: 5px; font-family: monospace;
+}
+h1.main-title {
+  color: #fff; font-size: clamp(28px,6vw,48px); font-weight: 700;
+  line-height: 1; text-shadow: 0 0 40px rgba(201,168,76,0.3); margin: 6px 0;
+}
+.subtitle { color: #7a9cc4; font-size: 15px; }
+.gold-line {
+  width: 60px; height: 2px; margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+}
+
+.game-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.game-card {
+  position: relative; border-radius: 16px; overflow: hidden;
+  cursor: pointer; transition: transform 0.18s, box-shadow 0.18s;
+  display: flex; min-height: 90px;
+}
+.game-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+
+.card-banner {
+  flex-shrink: 0; width: 76px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 12px 8px;
+  background: linear-gradient(160deg, #1e3a8a, #1d4ed8);
+}
+.banner-symbol { font-size: 28px; line-height: 1; color: #fff; }
+.banner-label  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
+
+.card-content {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-right: none;
+  border-radius: 0 16px 16px 0;
+  padding: 12px 14px 12px 12px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+}
+.card-title { color: #fff; font-weight: 700; font-size: clamp(13px,2.5vw,15px); line-height: 1.4; }
+.card-meta  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pill {
+  font-size: 11px; font-weight: 600; padding: 2px 9px;
+  border-radius: 20px; background: rgba(255,255,255,0.08); color: #7a9cc4;
+}
+.card-arrow { color: rgba(255,255,255,0.25); font-size: 16px; align-self: center; margin-right: auto; padding-left: 4px; }
+
+.diff-wrap { display: flex; justify-content: center; gap: 8px; margin: 14px 0 0; }
+.diff-btn {
+  padding: 7px 18px; border-radius: 20px; border: 1.5px solid rgba(201,168,76,0.3);
+  background: transparent; color: #7a9cc4; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.diff-btn:hover { border-color: rgba(201,168,76,0.7); color: #fff; }
+.diff-btn.easy.active   { background: rgba(34,197,94,0.15);  border-color: #22c55e; color: #86efac; }
+.diff-btn.medium.active { background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #fde68a; }
+.diff-btn.hard.active   { background: rgba(239,68,68,0.15);  border-color: #ef4444; color: #fca5a5; }
+
+/* ══ PLAY ══ */
+#screen-play { height: 100dvh; overflow: hidden; display: none; }
+#screen-play.active { display: flex; flex-direction: column; }
+
+.play-wrap {
+  width: 100%; max-width: 700px; margin: 0 auto;
+  padding: 10px 12px; display: flex; flex-direction: column;
+  height: 100%; overflow: hidden;
+}
+
+.play-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; flex-shrink: 0; }
+.play-vote-type { color: #c9a84c; font-size: 10px; letter-spacing: 3px; font-family: monospace; margin-bottom: 2px; }
+.play-title { color: #fff; font-weight: 700; font-size: clamp(12px,3vw,15px); line-height: 1.2; }
+.play-date  { color: #7a9cc4; font-size: 11px; margin-top: 2px; }
+
+.stats-bar {
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 10px; padding: 6px 12px; margin-bottom: 8px; flex-shrink: 0;
+}
+.stat-box   { text-align: center; }
+.stat-label { color: #7a9cc4; font-size: 10px; margin-bottom: 1px; }
+.stat-val   { color: #fff; font-weight: 800; font-size: clamp(14px,3.5vw,18px); font-family: monospace; }
+.stat-divider { width: 1px; height: 26px; background: rgba(255,255,255,0.1); }
+
+.hearts-wrap { display: flex; gap: 2px; justify-content: center; }
+.heart { font-size: 15px; transition: all 0.3s; }
+.heart.lost { filter: grayscale(1) opacity(0.25); transform: scale(0.75); }
+
+.progress-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 8px; overflow: hidden; flex-shrink: 0; }
+.progress-bar  { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#166534,#22c55e); transition: width 0.4s ease; width: 0%; }
+
+/* Stack area */
+.deck-area {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  padding: 2px 10px 4px; min-height: 0;
+}
+.stack-bg {
+  position: absolute; border-radius: 18px; pointer-events: none;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+}
+.stack-bg-2 {
+  width: calc(100% - 48px); max-width: 380px; height: 100%;
+  transform: translateY(12px) scale(0.95); opacity: 0.7;
+}
+.stack-bg-3 {
+  width: calc(100% - 68px); max-width: 360px; height: 100%;
+  transform: translateY(22px) scale(0.90); opacity: 0.4;
+}
+
+/* The swipeable card */
+.swipe-card {
+  position: relative;
+  width: calc(100% - 20px); max-width: 420px;
+  background: linear-gradient(145deg, #1a2f6b, #0f1c3f);
+  border: 2px solid rgba(201,168,76,0.35);
+  border-radius: 18px;
+  box-shadow: 0 16px 50px rgba(0,0,0,0.55);
+  display: flex; flex-direction: column;
+  padding: 14px 16px 12px;
+  cursor: grab; user-select: none; touch-action: none;
+  z-index: 10; gap: 0;
+  flex: 1; min-height: 0; max-height: 100%;
+}
+.swipe-card:active { cursor: grabbing; }
+
+.swipe-card.animating {
+  transition: transform 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.42s ease;
+}
+.swipe-card.fly-right { transform: translateX(160%) rotate(28deg) !important; opacity: 0; }
+.swipe-card.fly-left  { transform: translateX(-160%) rotate(-28deg) !important; opacity: 0; }
+.swipe-card.fly-up    { transform: translateY(-160%) !important; opacity: 0; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.88) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.swipe-card.card-in { animation: cardIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* Stamps */
+.stamp {
+  position: absolute; top: 14px;
+  font-size: 20px; font-weight: 900; letter-spacing: 2px;
+  border-radius: 6px; padding: 3px 11px;
+  border-width: 3px; border-style: solid;
+  opacity: 0; pointer-events: none; font-family: monospace;
+  white-space: nowrap; transition: opacity 0.07s;
+}
+.stamp-for     { right: 14px; color: #22c55e; border-color: #22c55e; transform: rotate(14deg); }
+.stamp-against { left: 14px;  color: #ef4444; border-color: #ef4444; transform: rotate(-14deg); }
+.stamp-abstain { top: 12px; left: 50%; transform: translateX(-50%); color: #f59e0b; border-color: #f59e0b; }
+
+/* Vote title inside card */
+.card-vote-strip {
+  background: rgba(201,168,76,0.09);
+  border: 1px solid rgba(201,168,76,0.22);
+  border-radius: 8px;
+  padding: 7px 10px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+.card-vote-eyebrow {
+  font-size: 9px; letter-spacing: 2.5px; font-family: monospace;
+  color: rgba(201,168,76,0.5); display: block; margin-bottom: 3px;
+}
+.card-vote-name {
+  font-size: 12px; font-weight: 700; color: #c9a84c; line-height: 1.4;
+}
+
+/* MK body */
+.mk-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 9px; min-height: 0;
+}
+.mk-avatar {
+  width: 62px; height: 62px; border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+  border: 2px solid rgba(201,168,76,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0;
+}
+.mk-name {
+  font-size: clamp(20px,5.5vw,28px); font-weight: 800;
+  text-align: center; line-height: 1.2; color: #fff;
+}
+.mk-faction {
+  font-size: 12px; color: #7a9cc4; text-align: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 2px 13px;
+}
+.mk-num { font-size: 10px; color: rgba(201,168,76,0.4); font-family: monospace; letter-spacing: 1px; margin-top: 2px; }
+
+/* Controls */
+.controls {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; padding: 8px 16px 10px; flex-shrink: 0;
+}
+.ctrl-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: none; cursor: pointer; font-family: inherit;
+  transition: transform 0.12s; border-radius: 50%;
+  width: 60px; height: 60px; justify-content: center;
+}
+.ctrl-btn:active { transform: scale(0.88); }
+.ctrl-against { background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.45); }
+.ctrl-against:hover { background: rgba(239,68,68,0.28); }
+.ctrl-abstain { background: rgba(245,158,11,0.1); border: 2px solid rgba(245,158,11,0.3); width: 46px; height: 46px; }
+.ctrl-abstain:hover { background: rgba(245,158,11,0.2); }
+.ctrl-for { background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.45); }
+.ctrl-for:hover { background: rgba(34,197,94,0.28); }
+.ctrl-icon  { font-size: 22px; line-height: 1; }
+.ctrl-label { font-size: 11px; font-weight: 700; }
+.ctrl-against .ctrl-label { color: #fca5a5; }
+.ctrl-for     .ctrl-label { color: #86efac; }
+.ctrl-abstain .ctrl-label { color: #fde68a; font-size: 9px; }
+
+.swipe-hint {
+  display: flex; gap: 18px; justify-content: center;
+  font-size: 10px; color: rgba(255,255,255,0.18);
+  padding-bottom: 2px; flex-shrink: 0; font-family: monospace;
+}
+
+/* Reveal badge shown on card after swipe */
+.reveal-badge {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 700; font-family: monospace;
+  padding: 3px 14px; border-radius: 20px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.3s 0.2s;
+  pointer-events: none;
+}
+.reveal-badge.show { opacity: 1; }
+.reveal-badge.for     { color: #86efac; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); }
+.reveal-badge.against { color: #fca5a5; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); }
+.reveal-badge.abstain { color: #fde68a; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.28); }
+@keyframes pop { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+.end-screen-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: stretch; padding-bottom: 8px; min-height: 0;
+}
+.end-screen-inner {
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(201,168,76,0.45);
+  border-radius: 20px; padding: 28px 22px; text-align: center;
+  animation: pop 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; min-height: 0;
+}
+.win-stats { display: flex; justify-content: center; gap: 28px; }
+.win-stat-label { color: #7a9cc4; font-size: 12px; margin-bottom: 4px; }
+.win-stat-value { color: #c9a84c; font-weight: 800; font-size: 26px; font-family: monospace; }
+.win-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* Feedback */
+.feedback-flash {
+  position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  opacity: 0; transition: opacity 0.15s;
+}
+.feedback-flash.red   { background: rgba(239,68,68,0.18); }
+.feedback-flash.green { background: rgba(34,197,94,0.12); }
+
+.float-feedback {
+  position: fixed; top: 32%; left: 50%;
+  transform: translateX(-50%) scale(0.7);
+  font-size: 18px; font-weight: 900;
+  padding: 7px 18px; border-radius: 10px;
+  pointer-events: none; z-index: 60; opacity: 0;
+  transition: all 0.15s; font-family: monospace; white-space: nowrap;
+}
+.float-feedback.show { opacity: 1; transform: translateX(-50%) scale(1); }
+.float-feedback.correct { color: #86efac; background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.35); }
+.float-feedback.wrong   { color: #fca5a5; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.35); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(5,12,35,0.85); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+  background: linear-gradient(160deg, #0f2050, #1a3570);
+  border: 1px solid rgba(201,168,76,0.4);
+  border-radius: 20px; padding: 28px 24px;
+  max-width: 420px; width: 100%; text-align: center;
+  animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-title { color: #c9a84c; font-size: 20px; font-weight: 700; margin-bottom: 18px; }
+.modal-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; text-align: right; }
+.modal-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 10px 14px;
+}
+.modal-step-icon { font-size: 22px; flex-shrink: 0; line-height: 1.4; }
+.modal-step-text { color: #cbd5e1; font-size: 14px; line-height: 1.6; }
+.modal-step-text strong { color: #fff; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- LOADING -->
+  <div id="screen-loading" class="screen active">
+    <div class="center">
+      <div style="font-size:52px">🗳️</div>
+      <div style="color:#c9a84c;font-size:22px;font-weight:700">סווייפ בכנסת</div>
+      <div class="spinner"></div>
+      <div id="load-msg" style="color:#7a9cc4;font-size:13px;font-family:monospace;max-width:300px"></div>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="screen-error" class="screen">
+    <div class="center">
+      <div style="font-size:48px">⚠️</div>
+      <div style="color:#f87171;font-size:18px;font-weight:700">שגיאה בטעינה</div>
+      <div id="error-msg" class="error-box"></div>
+      <button class="btn btn-blue" onclick="loadGames(true)">🔄 נסה שוב</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen">
+    <div class="home-wrap">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="logo-badge">כנסת ישראל</div>
+        <h1 class="main-title">🗳️ סווייפ בכנסת</h1>
+        <p class="subtitle">נחש איך הצביעו חברי הכנסת</p>
+        <div class="gold-line"></div>
+      </div>
+
+      <div class="diff-wrap">
+        <button class="diff-btn easy"          id="diff-easy"   onclick="setDiff('easy')">קל · 10</button>
+        <button class="diff-btn medium active" id="diff-medium" onclick="setDiff('medium')">בינוני · 20</button>
+        <button class="diff-btn hard"          id="diff-hard"   onclick="setDiff('hard')">קשה · כולם</button>
+      </div>
+
+      <div id="game-list" class="game-list" style="margin-top:14px"></div>
+
+      <div style="text-align:center">
+        <button class="btn-refresh" onclick="renderHome()">🔀 הצבעות אחרות</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAY -->
+  <div id="screen-play" class="screen">
+    <div class="play-wrap">
+
+      <div class="play-header">
+        <button class="btn-back" onclick="showHome()">◄ חזור</button>
+        <div style="flex:1">
+          <div class="play-vote-type">סווייפ בכנסת</div>
+          <div id="play-title" class="play-title"></div>
+          <div id="play-date"  class="play-date"></div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-box">
+          <div class="stat-label">כרטיס</div>
+          <div class="stat-val" id="stat-card">1/10</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+          <div class="stat-label">ניקוד</div>
+          <div class="stat-val" id="stat-score" style="color:#86efac">0</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+          <div class="stat-label">חיים</div>
+          <div class="hearts-wrap">
+            <span class="heart" id="h1">❤️</span>
+            <span class="heart" id="h2">❤️</span>
+            <span class="heart" id="h3">❤️</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <!-- Stack -->
+      <div class="deck-area" id="deck-area">
+        <div class="stack-bg stack-bg-3"></div>
+        <div class="stack-bg stack-bg-2"></div>
+
+        <div id="swipe-card" class="swipe-card">
+          <div class="stamp stamp-for"     id="stamp-for">✓ בעד</div>
+          <div class="stamp stamp-against" id="stamp-against">✗ נגד</div>
+          <div class="stamp stamp-abstain" id="stamp-abstain">↕ נמנע</div>
+
+          <!-- Vote title strip -->
+          <div class="card-vote-strip">
+            <span class="card-vote-eyebrow">נושא ההצבעה</span>
+            <div class="card-vote-name" id="card-vote-name">—</div>
+          </div>
+
+          <!-- MK -->
+          <div class="mk-body">
+            <div class="mk-avatar">👤</div>
+            <div class="mk-name" id="mk-name">—</div>
+            <div class="mk-num"  id="mk-num"></div>
+          </div>
+          <!-- Reveal badge (shown momentarily after answer) -->
+          <div class="reveal-badge" id="reveal-badge"></div>
+        </div>
+      </div>
+
+      <!-- End screen (replaces deck-area when game ends) -->
+      <div id="end-screen" style="display:none" class="end-screen-wrap">
+        <div class="end-screen-inner" id="end-screen-inner"></div>
+      </div>
+
+      <div class="swipe-hint" id="swipe-hint">
+        <span>⬅ נגד</span>
+        <span>⬆ נמנע</span>
+        <span>בעד ➡</span>
+      </div>
+
+      <div class="controls" id="controls">
+        <button class="ctrl-btn ctrl-against" onclick="doSwipe('against')">
+          <span class="ctrl-icon">✗</span>
+          <span class="ctrl-label">נגד</span>
+        </button>
+        <button class="ctrl-btn ctrl-abstain" onclick="doSwipe('abstain')">
+          <span class="ctrl-icon" style="font-size:17px">↕</span>
+          <span class="ctrl-label">נמנע</span>
+        </button>
+        <button class="ctrl-btn ctrl-for" onclick="doSwipe('for')">
+          <span class="ctrl-icon">✓</span>
+          <span class="ctrl-label">בעד</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal-instructions" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-title">🗳️ איך משחקים?</div>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <div class="modal-step-icon">📋</div>
+        <div class="modal-step-text">בוחרים נושא הצבעה ורמת קושי</div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-icon">👤</div>
+        <div class="modal-step-text">מופיע שם חבר/ת כנסת — <strong>נחשו איך הצביעו!</strong></div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-icon">👉</div>
+        <div class="modal-step-text">
+          <strong>ימינה</strong> = בעד &nbsp;|&nbsp; <strong>שמאלה</strong> = נגד &nbsp;|&nbsp; <strong>למעלה</strong> = נמנע
+        </div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-icon">❤️</div>
+        <div class="modal-step-text">יש לכם <strong>3 חיים</strong> — אל תטעו יותר מדי!</div>
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="dismissModal()" style="width:100%">בואו נשחק! ▶</button>
+  </div>
+</div>
+
+<div class="feedback-flash" id="feedback-flash"></div>
+<div class="float-feedback"  id="float-feedback"></div>
+
+<!-- SELF-VOTE MODAL -->
+<div id="modal-self-vote" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">🤔 ואתה — איך היית מצביע?</div>
+    <p style="color:#7a9cc4;font-size:14px;margin:-8px 0 20px;line-height:1.6" id="self-vote-topic"></p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" style="background:rgba(239,68,68,0.18);border:1.5px solid rgba(239,68,68,0.5);color:#fca5a5;flex:1;min-width:80px"
+        onclick="submitSelfVote('against')">✗ נגד</button>
+      <button class="btn" style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.4);color:#fde68a;flex:1;min-width:80px"
+        onclick="submitSelfVote('abstain')">↕ נמנע</button>
+      <button class="btn" style="background:rgba(34,197,94,0.15);border:1.5px solid rgba(34,197,94,0.5);color:#86efac;flex:1;min-width:80px"
+        onclick="submitSelfVote('for')">✓ בעד</button>
+    </div>
+    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px">
+      דלג
+    </button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7mtU_4w7tz6Iz4VPAkO5eUdEnil2PsiLpo17zscAJNxMJml7p5qBr9wJifIgiYlpy/exec";
+const SWIPE_URL       = "https://script.google.com/macros/s/AKfycbw5Yhno_W6yEDYx9OxAviic9Vs8d72ZiMfOzFsn-eoxsYv3jzXu4H330M4-hgc24Oa3/exec";
+const API_BASES   = [
+  "https://www.knesset.gov.il",
+  "https://knesset.gov.il",
+  "https://main.knesset.gov.il",
+];
+const DETAIL_PATH = "/WebSiteApi/knessetapi/Votes/GetVoteDetails/";
+const CACHE_KEY   = "knesset-swipe-cache-v2";
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function readCache()   { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch { return {}; } }
+function writeCache(d) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch {} }
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + id).classList.add("active");
+}
+function setLoadMsg(msg) { document.getElementById("load-msg").textContent = msg; }
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+let allGames = [];
+
+async function fetchSheetRows() {
+  const resp = await fetch(APPS_SCRIPT_URL);
+  const data = await resp.json();
+  if (!Array.isArray(data)) throw new Error("שגיאה בטעינת המשחק");
+  return data
+    .filter(r => r.voteId && /^\d+$/.test(r.voteId))
+    .map(r => ({ ...r, shortName: (r.shortName || r.short_name || "").trim() }));
+}
+
+async function fetchVoteDetails(voteId) {
+  for (const base of API_BASES) {
+    try {
+      const r = await fetch(base + DETAIL_PATH + voteId, { mode: "cors" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      if (data?.VoteDetails) return data;
+    } catch (_) {}
+    await sleep(200);
+  }
+  throw new Error(`שגיאה בטעינת הצבעה ${voteId}`);
+}
+
+function normalizeVote(title) {
+  if (!title) return null;
+  const t = title.trim();
+  if (t === "בעד")  return "for";
+  if (t === "נגד")  return "against";
+  if (t === "נמנע" || t === "נמנע/נעדר" || t === "נעדר") return "abstain";
+  return null;
+}
+
+async function loadGames(bustCache = false) {
+  showScreen("loading");
+  setLoadMsg("המשחק בטעינה…");
   try {
-    const payload = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const tz = Session.getScriptTimeZone();
-    const now = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd HH:mm:ss");
+    if (bustCache) writeCache({});
+    const rows  = await fetchSheetRows();
+    if (!rows.length) throw new Error("לא נמצאו משחקים פעילים זמינים");
+    const cache = readCache();
+    const games = [];
 
-    // ── משחק סווייפ ──
-    if (payload.game === "swipe") {
-      let sheet = ss.getSheetByName("swipe_kneset");
-      if (!sheet) {
-        sheet = ss.insertSheet("swipe_kneset");
-        sheet.appendRow([
-          "timestamp", "difficulty",
-          "correct", "wrong", "accuracy",
-          "vote_id", "vote_short_name",
-          "user_vote"
-        ]);
-      }
-      sheet.appendRow([
-        now,
-        payload.difficulty      || "",
-        payload.correct         || 0,
-        payload.wrong           || 0,
-        payload.accuracy        || 0,
-        payload.vote_id         || "",
-        payload.vote_short_name || "",
-        payload.user_vote       || "",
-      ]);
-      return json({ ok: true });
+    for (let i = 0; i < rows.length; i++) {
+      const { voteId } = rows[i];
+      setLoadMsg(`טוען הצבעה ${i + 1} מתוך ${rows.length}…`);
+      if (cache[voteId]) { games.push(cache[voteId]); continue; }
+      try {
+        const data   = await fetchVoteDetails(voteId);
+        const header = data.VoteHeader?.[0] || {};
+        // All members with vote key + faction name
+        const members = (data.VoteDetails || [])
+          .filter(d => normalizeVote(d.Title))
+          .map(d => ({
+            name:    (d.MkName || "").trim(),
+            vote:    normalizeVote(d.Title),
+            faction: (d.FactionName || "").trim(),
+          }));
+
+        if (members.length < 3) continue;
+
+        const game = {
+          voteId,
+          title:     header.ItemTitle   || "ללא כותרת",
+          shortName: rows[i].shortName  || "",
+          date:      header.VoteDateStr || "",
+          decision:  header.Decision    || "",
+          members,
+        };
+        cache[voteId] = game;
+        games.push(game);
+      } catch (e) { console.warn("Skip", voteId, e.message); }
     }
 
-    // ── משחק פיצוץ ──
-    if (payload.game === "blaster") {
-      let sheet = ss.getSheetByName("תוצאות_משחק_פיצוץ");
-      if (!sheet) {
-        sheet = ss.insertSheet("תוצאות_משחק_פיצוץ");
-        sheet.appendRow([
-          "timestamp", "difficulty",
-          "hits", "misses", "accuracy",
-          "vote_id", "vote_short_name", "vote_type"
-        ]);
-      }
-      sheet.appendRow([
-        now,
-        payload.difficulty      || "",
-        payload.hits            || 0,
-        payload.misses          || 0,
-        payload.accuracy        || 0,
-        payload.vote_id         || "",
-        payload.vote_short_name || "",
-        payload.vote_type       || "",
-      ]);
-      return json({ ok: true });
+    writeCache(cache);
+    allGames = games;
+    if (!games.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
+    renderHome();
+    showScreen("home");
+    if (!localStorage.getItem("swipe-knesset-seen")) {
+      localStorage.setItem("swipe-knesset-seen", "1");
+      document.getElementById("modal-instructions").style.display = "flex";
     }
-
-    // ── משחק זיכרון ──
-    let sheet = ss.getSheetByName("תוצאות");
-    if (!sheet) {
-      sheet = ss.insertSheet("תוצאות");
-      sheet.appendRow([
-        "timestamp", "difficulty", "pairs",
-        "moves", "time_seconds", "accuracy",
-        "vote_id", "vote_short_name", "vote_type"
-      ]);
-    }
-    sheet.appendRow([
-      now,
-      payload.difficulty      || "",
-      payload.pairs           || "",
-      payload.moves           || "",
-      payload.time_seconds    || "",
-      payload.accuracy        || "",
-      payload.vote_id         || "",
-      payload.vote_short_name || "",
-      payload.vote_type       || "",
-    ]);
-    return json({ ok: true });
-
-  } catch(err) {
-    return json({ ok: false, error: err.message });
+  } catch (e) {
+    document.getElementById("error-msg").textContent = e.message;
+    showScreen("error");
   }
 }
 
-function json(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+// ── Difficulty ─────────────────────────────────────────────
+const DIFF_COUNT = { easy: 10, medium: 20, hard: 999 };
+let currentDiff = "medium";
+
+function setDiff(d) {
+  currentDiff = d;
+  document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("diff-" + d).classList.add("active");
 }
+
+// ══════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════
+function renderHome() {
+  const list = document.getElementById("game-list");
+  list.innerHTML = "";
+  const picked = shuffle([...allGames.map((g, i) => ({ g, i }))]).slice(0, 4);
+  picked.forEach(({ g: game, i: idx }) => {
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+      <div class="card-banner">
+        <div class="banner-symbol">🗳️</div>
+        <div class="banner-label">הצבעה</div>
+      </div>
+      <div class="card-content">
+        <div class="card-title">${esc(game.shortName || game.title)}</div>
+        <div class="card-meta">
+          ${game.date     ? `<span class="pill"><span style="color:#7a9cc4;font-weight:400">תאריך: </span>${esc(game.date)}</span>` : ""}
+          ${game.decision ? `<span class="pill"><span style="color:#7a9cc4;font-weight:400">החלטה: </span>${esc(game.decision)}</span>` : ""}
+          <span class="pill">${game.members.length} ח"כים</span>
+        </div>
+      </div>
+      <span class="card-arrow">◀</span>`;
+    card.onclick = () => startGame(idx);
+    list.appendChild(card);
+  });
+}
+
+function showHome() {
+  stopGame();
+  showScreen("home");
+}
+
+// ══════════════════════════════════════════════
+// GAME
+// ══════════════════════════════════════════════
+let gs       = null;
+let locked   = false;
+let savedIdx = -1;
+
+function startGame(idx) {
+  savedIdx = idx;
+  const game = allGames[idx];
+
+  // Ask the user how they'd vote — before showing any MKs
+  document.getElementById("self-vote-topic").textContent =
+    `"${game.shortName || game.title}"`;
+  document.getElementById("modal-self-vote").style.display = "flex";
+}
+
+function submitSelfVote(choice) {
+  document.getElementById("modal-self-vote").style.display = "none";
+
+  const game  = allGames[savedIdx];
+  const count = Math.min(game.members.length, DIFF_COUNT[currentDiff]);
+  const BIBI  = "נתניהו בנימין";
+  const hasBibi = game.members.find(m => m.name === BIBI);
+  const rest    = shuffle(game.members.filter(m => m.name !== BIBI));
+  const pool    = hasBibi ? [hasBibi, ...rest].slice(0, count) : rest.slice(0, count);
+
+  gs = { game, deck: pool, idx: 0, score: 0, lives: 3, total: pool.length, over: false,
+         userVote: choice };   // choice = 'for' | 'against' | 'abstain' | null
+  locked = false;
+
+  // Show deck, hide end
+  document.getElementById("deck-area").style.display   = "flex";
+  document.getElementById("end-screen").style.display  = "none";
+  document.getElementById("controls").style.display    = "flex";
+  document.getElementById("swipe-hint").style.display  = "flex";
+
+  document.getElementById("play-title").textContent = game.shortName || game.title;
+  document.getElementById("play-date").textContent  = game.date ? "📅 " + game.date : "";
+
+  updateStatsUI();
+  renderCard(true);
+  showScreen("play");
+  setupSwipe();
+}
+
+function restartGame() { if (savedIdx >= 0) startGame(savedIdx); else showHome(); }
+function stopGame()    { locked = false; gs = null; }
+
+function updateStatsUI() {
+  document.getElementById("stat-card").textContent  = `${gs.idx + 1}/${gs.total}`;
+  document.getElementById("stat-score").textContent = gs.score;
+  document.getElementById("progress-bar").style.width = `${(gs.idx / gs.total) * 100}%`;
+  for (let i = 1; i <= 3; i++)
+    document.getElementById("h" + i).classList.toggle("lost", i > gs.lives);
+}
+
+function renderCard(first = false) {
+  if (gs.idx >= gs.total) { endGame(true); return; }
+  const mk = gs.deck[gs.idx];
+
+  document.getElementById("card-vote-name").textContent = gs.game.shortName || gs.game.title;
+  document.getElementById("mk-name").textContent = mk.name;
+  document.getElementById("mk-num").textContent  = `כרטיס ${gs.idx + 1} מתוך ${gs.total}`;
+
+  ["stamp-for","stamp-against","stamp-abstain"].forEach(id => {
+    document.getElementById(id).style.opacity = "0";
+  });
+
+  // Reset reveal badge
+  const rb = document.getElementById("reveal-badge");
+  rb.className = "reveal-badge"; rb.textContent = "";
+
+  const card = document.getElementById("swipe-card");
+  card.style.transition = "";
+  card.style.transform  = "";
+  card.style.opacity    = "";
+  card.classList.remove("animating","fly-right","fly-left","fly-up","card-in");
+  void card.offsetWidth;
+  if (!first) card.classList.add("card-in");
+
+  updateStatsUI();
+}
+
+// ══════════════════════════════════════════════
+// SWIPE
+// ══════════════════════════════════════════════
+function doSwipe(direction) {
+  if (!gs || locked || gs.over || gs.idx >= gs.total) return;
+  locked = true;
+
+  const card = document.getElementById("swipe-card");
+  card.classList.add("animating");
+  card.classList.add(direction === "for" ? "fly-right" : direction === "against" ? "fly-left" : "fly-up");
+
+  const mk      = gs.deck[gs.idx];
+  const correct = mk.vote === direction;
+  const labels  = { for: "בעד", against: "נגד", abstain: "נמנע" };
+
+  if (correct) {
+    gs.score += 100;
+    showFeedback(true, "✓ נכון! +100");
+  } else {
+    gs.lives--;
+    showFeedback(false, `✗ טעות! הצביע ${labels[mk.vote] || "?"}`);
+  }
+
+  // Show reveal badge briefly
+  const rb = document.getElementById("reveal-badge");
+  rb.textContent = `הצביע: ${labels[mk.vote]}`;
+  rb.className   = `reveal-badge ${mk.vote} show`;
+
+  setTimeout(() => {
+    locked = false;
+    gs.idx++;
+    if (gs.lives <= 0) { gs.over = true; endGame(false); }
+    else if (gs.idx >= gs.total) { endGame(true); }
+    else { renderCard(); }
+  }, 460);
+}
+
+function showFeedback(correct, msg) {
+  const flash = document.getElementById("feedback-flash");
+  flash.className = "feedback-flash " + (correct ? "green" : "red");
+  flash.style.opacity = "1";
+  setTimeout(() => { flash.style.opacity = "0"; }, 380);
+
+  const text = document.getElementById("float-feedback");
+  text.className  = "float-feedback " + (correct ? "correct" : "wrong");
+  text.textContent = msg;
+  text.classList.add("show");
+  setTimeout(() => { text.classList.remove("show"); }, 1100);
+}
+
+function endGame(won) {
+  gs.over = true; locked = false;
+  const correct = Math.floor(gs.score / 100);
+  const pct     = Math.round((correct / Math.max(gs.idx, 1)) * 100);
+  const gameName = gs.game.shortName || gs.game.title;
+
+  // שמירה לגיליון
+  const voteLabels = { for: "בעד", against: "נגד", abstain: "נמנע" };
+  fetch(SWIPE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({
+      game:            "swipe",
+      difficulty:      currentDiff,
+      correct,
+      wrong:           gs.idx - correct,
+      accuracy:        pct,
+      vote_id:         gs.game.voteId,
+      vote_short_name: gameName,
+      user_vote:       gs.userVote ? (voteLabels[gs.userVote] || gs.userVote) : "דילג",
+    }),
+  }).catch(() => {});  // שגיאה שקטה — לא מפריעה למשחק
+  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" 🗳️ שחקו גם אתם!`);
+
+  document.getElementById("deck-area").style.display  = "none";
+  document.getElementById("controls").style.display   = "none";
+  document.getElementById("swipe-hint").style.display = "none";
+  document.getElementById("end-screen").style.display = "flex";
+
+  document.getElementById("end-screen-inner").innerHTML = `
+    <div style="font-size:52px">${won ? "🏆" : "💔"}</div>
+    <h2 style="color:#c9a84c;font-size:24px;margin:0;font-weight:700">${won ? "כל הכבוד!" : "נפסלת!"}</h2>
+    <p style="color:#7a9cc4;font-size:13px;margin:0">
+      ${won ? `סיימת את כל ${gs.total} הכרטיסים!` : `ניחשת נכון ${correct} מתוך ${gs.idx} ח"כים`}
+    </p>
+    <div class="win-stats">
+      <div><div class="win-stat-label">✅ נכונות</div><div class="win-stat-value">${correct}</div></div>
+      <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
+      <div><div class="win-stat-label">❌ טעויות</div><div class="win-stat-value">${gs.idx - correct}</div></div>
+    </div>
+    <div class="win-btns">
+      <button class="btn btn-gold"  onclick="restartGame()">🔄 שחק שוב</button>
+      <button class="btn btn-ghost" onclick="showHome()">🏠 בחר הצבעה</button>
+    </div>
+    <button onclick="window.open('https://wa.me/?text=${shareText}','_blank')"
+      style="width:100%;background:linear-gradient(135deg,#128C7E,#25D366);border:none;border-radius:10px;padding:11px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">
+      📲 שתף בוואטסאפ
+    </button>`;
+}
+
+// ══════════════════════════════════════════════
+// TOUCH/MOUSE SWIPE
+// ══════════════════════════════════════════════
+function setupSwipe() {
+  const card = document.getElementById("swipe-card");
+  if (card._swipeActive) card._swipeActive = false;
+  const ctx = { active: true };
+  card._swipeActive = true;
+
+  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false;
+
+  function onStart(x, y) {
+    if (!ctx.active || locked || gs?.over) return;
+    startX = x; startY = y; dx = 0; dy = 0; dragging = true;
+    card.style.transition = "none";
+  }
+  function onMove(x, y) {
+    if (!ctx.active || !dragging) return;
+    dx = x - startX; dy = y - startY;
+    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.055}deg)`;
+
+    const ax = Math.abs(dx), ay = Math.abs(dy), thr = 45;
+    const sf = document.getElementById("stamp-for");
+    const sa = document.getElementById("stamp-against");
+    const su = document.getElementById("stamp-abstain");
+    sf.style.opacity = sa.style.opacity = su.style.opacity = "0";
+    if (ax > ay && ax > thr) {
+      if (dx > 0) sf.style.opacity = Math.min(1,(dx-thr)/70)+"";
+      else        sa.style.opacity = Math.min(1,(-dx-thr)/70)+"";
+    } else if (dy < -thr && ay > ax) {
+      su.style.opacity = Math.min(1,(-dy-thr)/70)+"";
+    }
+  }
+  function onEnd() {
+    if (!ctx.active || !dragging) return;
+    dragging = false;
+    card.style.transition = "";
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if (ax > ay && ax > 80)       doSwipe(dx > 0 ? "for" : "against");
+    else if (dy < -80 && ay > ax) doSwipe("abstain");
+    else {
+      card.style.transition = "transform 0.28s cubic-bezier(0.34,1.56,0.64,1)";
+      card.style.transform  = "";
+      ["stamp-for","stamp-against","stamp-abstain"].forEach(id => {
+        document.getElementById(id).style.opacity = "0";
+      });
+    }
+  }
+
+  card.addEventListener("mousedown",  e => onStart(e.clientX, e.clientY));
+  const mm = e => { if(dragging&&ctx.active) onMove(e.clientX,e.clientY); };
+  const mu = ()  => { if(ctx.active) onEnd(); };
+  window.addEventListener("mousemove", mm);
+  window.addEventListener("mouseup",   mu);
+
+  card.addEventListener("touchstart", e => { const t=e.touches[0]; onStart(t.clientX,t.clientY); }, {passive:true});
+  const tm = e => { if(dragging&&ctx.active){ const t=e.touches[0]; onMove(t.clientX,t.clientY); } };
+  const te = ()  => { if(ctx.active) onEnd(); };
+  window.addEventListener("touchmove", tm, {passive:true});
+  window.addEventListener("touchend",  te);
+}
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+function dismissModal() { document.getElementById("modal-instructions").style.display = "none"; }
+function closeModal(e)  { if (e.target === document.getElementById("modal-instructions")) dismissModal(); }
+
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
+loadGames();
+</script>
+</body>
+</html>
