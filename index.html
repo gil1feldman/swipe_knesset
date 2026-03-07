@@ -162,8 +162,26 @@ h1.main-title {
 .heart { font-size: 15px; transition: all 0.3s; }
 .heart.lost { filter: grayscale(1) opacity(0.25); transform: scale(0.75); }
 
-.progress-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 8px; overflow: hidden; flex-shrink: 0; }
+.progress-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 4px; overflow: hidden; flex-shrink: 0; }
 .progress-bar  { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#166534,#22c55e); transition: width 0.4s ease; width: 0%; }
+
+/* Timer bar */
+.timer-wrap { height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; }
+.timer-bar  {
+  height: 100%; border-radius: 4px; width: 100%;
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+  background-size: 200% 100%;
+  transform-origin: right center;
+  transition: none;
+}
+@keyframes timerTick {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+.timer-bar.ticking {
+  animation: timerTick linear forwards;
+}
+.timer-bar.urgent { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
 /* Stack area */
 .deck-area {
@@ -460,6 +478,10 @@ h1.main-title {
         <div class="progress-bar" id="progress-bar"></div>
       </div>
 
+      <div class="timer-wrap">
+        <div class="timer-bar" id="timer-bar"></div>
+      </div>
+
       <!-- Stack -->
       <div class="deck-area" id="deck-area">
         <div class="stack-bg stack-bg-3"></div>
@@ -695,7 +717,8 @@ async function loadGames(bustCache = false) {
 }
 
 // ── Difficulty ─────────────────────────────────────────────
-const DIFF_COUNT = { easy: 10, medium: 20, hard: 30 };
+const DIFF_COUNT   = { easy: 10, medium: 20, hard: 30 };
+const DIFF_SECONDS = { easy: 10, medium: 6,  hard: 4  };
 let currentDiff = "medium";
 
 function setDiff(d) {
@@ -744,6 +767,7 @@ function showHome() {
 let gs       = null;
 let locked   = false;
 let savedIdx = -1;
+let cardTimer = null;  // setTimeout handle for time-out
 
 function startGame(idx) {
   savedIdx = idx;
@@ -785,7 +809,7 @@ function submitSelfVote(choice) {
 }
 
 function restartGame() { if (savedIdx >= 0) startGame(savedIdx); else showHome(); }
-function stopGame()    { locked = false; gs = null; }
+function stopGame() { stopCardTimer(); locked = false; gs = null; }
 
 function updateStatsUI() {
   document.getElementById("stat-card").textContent  = `${gs.idx + 1}/${gs.total}`;
@@ -793,6 +817,60 @@ function updateStatsUI() {
   document.getElementById("progress-bar").style.width = `${(gs.idx / gs.total) * 100}%`;
   for (let i = 1; i <= 3; i++)
     document.getElementById("h" + i).classList.toggle("lost", i > gs.lives);
+}
+
+function startCardTimer() {
+  stopCardTimer();
+  const secs = DIFF_SECONDS[currentDiff];
+  const bar  = document.getElementById("timer-bar");
+
+  // Reset bar
+  bar.classList.remove("ticking", "urgent");
+  bar.style.animationDuration = "";
+  void bar.offsetWidth;  // reflow to restart animation
+
+  bar.style.animationDuration = secs + "s";
+  bar.classList.add("ticking");
+
+  // Pulse urgent color in last 2 seconds
+  const urgentDelay = Math.max(0, (secs - 2) * 1000);
+  cardTimer = setTimeout(() => {
+    bar.classList.add("urgent");
+  }, urgentDelay);
+
+  // Time out = lose a life, move on
+  cardTimer = setTimeout(() => {
+    if (!gs || locked || gs.over) return;
+    gs.lives--;
+    const mk     = gs.deck[gs.idx];
+    const labels = { for: "בעד", against: "נגד", abstain: "נמנע" };
+    showFeedback(false, `⏱ פג הזמן! הצביע ${labels[mk.vote] || "?"}`);
+
+    // Flash card red
+    const card = document.getElementById("swipe-card");
+    card.style.transition = "box-shadow 0.15s";
+    card.style.boxShadow  = "0 0 0 3px rgba(239,68,68,0.7)";
+    setTimeout(() => { card.style.boxShadow = ""; }, 400);
+
+    locked = true;
+    setTimeout(() => {
+      locked = false;
+      gs.idx++;
+      if (gs.lives <= 0) { gs.over = true; endGame(false); }
+      else if (gs.idx >= gs.total) { endGame(true); }
+      else { renderCard(); }
+    }, 500);
+  }, secs * 1000);
+}
+
+function stopCardTimer() {
+  clearTimeout(cardTimer);
+  cardTimer = null;
+  const bar = document.getElementById("timer-bar");
+  if (bar) {
+    bar.classList.remove("ticking", "urgent");
+    bar.style.animationDuration = "";
+  }
 }
 
 function renderCard(first = false) {
@@ -820,6 +898,8 @@ function renderCard(first = false) {
   if (!first) card.classList.add("card-in");
 
   updateStatsUI();
+  if (!first) startCardTimer();
+  else setTimeout(() => startCardTimer(), 350); // קצת השהיה לכרטיס הראשון
 }
 
 // ══════════════════════════════════════════════
@@ -827,6 +907,7 @@ function renderCard(first = false) {
 // ══════════════════════════════════════════════
 function doSwipe(direction) {
   if (!gs || locked || gs.over || gs.idx >= gs.total) return;
+  stopCardTimer();
   locked = true;
 
   const card = document.getElementById("swipe-card");
@@ -874,6 +955,7 @@ function showFeedback(correct, msg) {
 
 function endGame(won) {
   gs.over = true; locked = false;
+  stopCardTimer();
   const correct = Math.floor(gs.score / 100);
   const pct     = Math.round((correct / Math.max(gs.idx, 1)) * 100);
   const gameName = gs.game.shortName || gs.game.title;
