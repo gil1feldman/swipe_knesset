@@ -373,6 +373,35 @@ h1.main-title {
 .float-feedback.correct { color: #86efac; background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.35); }
 .float-feedback.wrong   { color: #fca5a5; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.35); }
 
+/* Streak badge */
+.streak-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 800; font-family: monospace;
+  padding: 2px 10px; border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.streak-badge.streak-0 { color: rgba(255,255,255,0.2); background: transparent; border: 1px solid rgba(255,255,255,0.08); }
+.streak-badge.streak-on { color: #fde68a; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); }
+.streak-badge.streak-x2 { color: #fb923c; background: rgba(251,146,60,0.18); border: 1px solid rgba(251,146,60,0.5); }
+.streak-badge.streak-x3 { color: #f87171; background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.5);
+  text-shadow: 0 0 8px rgba(248,113,113,0.6); }
+
+@keyframes streakPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+.streak-badge.pop { animation: streakPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* Score bump animation */
+@keyframes scoreBump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.3); color: #fde68a; }
+  100% { transform: scale(1); }
+}
+.score-bump { animation: scoreBump 0.3s ease; }
+
 /* Modal */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
@@ -473,6 +502,13 @@ h1.main-title {
         <div class="stat-box">
           <div class="stat-label">ניקוד</div>
           <div class="stat-val" id="stat-score" style="color:#86efac">0</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+          <div class="stat-label">רצף</div>
+          <div style="display:flex;justify-content:center">
+            <span class="streak-badge streak-0" id="streak-badge">0🔥</span>
+          </div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-box">
@@ -800,7 +836,7 @@ function submitSelfVote(choice) {
   const pool    = hasBibi ? [hasBibi, ...rest].slice(0, count) : rest.slice(0, count);
 
   gs = { game, deck: pool, idx: 0, score: 0, lives: 3, total: pool.length, over: false,
-         userVote: choice };
+         userVote: choice, streak: 0, maxStreak: 0, baseScore: 0, speedBonus: 0 };
   locked = false;
 
   document.getElementById("deck-area").style.display   = "flex";
@@ -826,10 +862,21 @@ function updateStatsUI() {
   document.getElementById("progress-bar").style.width = `${(gs.idx / gs.total) * 100}%`;
   for (let i = 1; i <= 3; i++)
     document.getElementById("h" + i).classList.toggle("lost", i > gs.lives);
+
+  // Streak badge
+  const sb = document.getElementById("streak-badge");
+  const s  = gs.streak;
+  sb.classList.remove("streak-0","streak-on","streak-x2","streak-x3","pop");
+  void sb.offsetWidth;
+  if (s === 0)      { sb.className = "streak-badge streak-0";  sb.textContent = "0🔥"; }
+  else if (s < 3)   { sb.className = "streak-badge streak-on pop"; sb.textContent = `${s}🔥`; }
+  else if (s < 5)   { sb.className = "streak-badge streak-x2 pop"; sb.textContent = `${s}🔥 ×2`; }
+  else              { sb.className = "streak-badge streak-x3 pop"; sb.textContent = `${s}🔥 ×3`; }
 }
 
 function startCardTimer() {
   stopCardTimer();
+  cardStartTime = Date.now();   // ⏱ מתי התחיל הכרטיס
   const secs = DIFF_SECONDS[currentDiff];
   const bar  = document.getElementById("timer-bar");
 
@@ -848,6 +895,7 @@ function startCardTimer() {
   cardTimer = setTimeout(() => {
     if (!gs || locked || gs.over) return;
     gs.lives--;
+    gs.streak = 0;   // פג הזמן — שובר רצף
     const mk     = gs.deck[gs.idx];
     const labels = { for: "בעד", against: "נגד", abstain: "נמנע" };
     showFeedback(false, `⏱ פג הזמן! הצביע ${labels[mk.vote] || "?"}`);
@@ -858,6 +906,7 @@ function startCardTimer() {
     setTimeout(() => { card.style.boxShadow = ""; }, 400);
 
     locked = true;
+    updateStatsUI();
     setTimeout(() => {
       locked = false;
       gs.idx++;
@@ -909,6 +958,8 @@ function renderCard(first = false) {
 // ══════════════════════════════════════════════
 // SWIPE
 // ══════════════════════════════════════════════
+let cardStartTime = 0;
+
 function doSwipe(direction) {
   if (!gs || locked || gs.over || gs.idx >= gs.total) return;
   stopCardTimer();
@@ -923,11 +974,45 @@ function doSwipe(direction) {
   const labels  = { for: "בעד", against: "נגד", abstain: "נמנע" };
 
   if (correct) {
-    gs.score += 100;
-    showFeedback(true, "✓ נכון! +100");
+    const secs      = DIFF_SECONDS[currentDiff];
+    const elapsed   = (Date.now() - cardStartTime) / 1000;
+    const timeRatio = Math.max(0, 1 - elapsed / secs);   // 1=מיידי, 0=בדיוק בזמן
+
+    // בסיס לפי קושי
+    const base = { easy: 100, medium: 150, hard: 200 }[currentDiff];
+
+    // בונוס מהירות: עד +50% (חצי בסיס)
+    const speed = Math.round(base * 0.5 * timeRatio);
+
+    // מכפיל רצף: ×1 / ×2 / ×3
+    gs.streak++;
+    if (gs.streak > gs.maxStreak) gs.maxStreak = gs.streak;
+    const mult = gs.streak >= 5 ? 3 : gs.streak >= 3 ? 2 : 1;
+
+    const earned = (base + speed) * mult;
+    gs.score     += earned;
+    gs.baseScore  += base;
+    gs.speedBonus += speed;
+
+    // פידבק ויזואלי
+    const parts = [`✓ נכון! +${earned}`];
+    if (speed > 0)  parts.push(`⚡+${speed}`);
+    if (mult  > 1)  parts.push(`🔥×${mult}`);
+    showFeedback(true, parts.join("  "));
+
+    updateStatsUI();
+
+    // באמפ ניקוד
+    const sv = document.getElementById("stat-score");
+    sv.classList.remove("score-bump");
+    void sv.offsetWidth;
+    sv.classList.add("score-bump");
+
   } else {
+    gs.streak = 0;
     gs.lives--;
     showFeedback(false, `✗ טעות! הצביע ${labels[mk.vote] || "?"}`);
+    updateStatsUI();
   }
 
   const rb = document.getElementById("reveal-badge");
@@ -959,9 +1044,18 @@ function showFeedback(correct, msg) {
 function endGame(won) {
   gs.over = true; locked = false;
   stopCardTimer();
-  const correct = Math.floor(gs.score / 100);
-  const pct     = Math.round((correct / Math.max(gs.idx, 1)) * 100);
-  const gameName = gs.game.shortName || gs.game.title;
+
+  const correct   = gs.idx - (gs.lives < 0 ? 0 : 0);  // count from score
+  const answered  = gs.idx;
+  // recalculate correct count from score isn't reliable anymore — count directly
+  let correctCount = 0;
+  // We track via score: but since multipliers vary, let's count from baseScore
+  // baseScore = base * correct answers (before multiplier), so:
+  const basePerQ  = { easy: 100, medium: 150, hard: 200 }[currentDiff];
+  correctCount    = Math.round(gs.baseScore / basePerQ);
+  const pct       = Math.round((correctCount / Math.max(answered, 1)) * 100);
+  const gameName  = gs.game.shortName || gs.game.title;
+  const streakBonus = gs.score - gs.baseScore - gs.speedBonus;
 
   const voteLabels = { for: "בעד", against: "נגד", abstain: "נמנע" };
   fetch(SWIPE_URL, {
@@ -970,9 +1064,11 @@ function endGame(won) {
     body: JSON.stringify({
       game:            "swipe",
       difficulty:      currentDiff,
-      correct,
-      wrong:           gs.idx - correct,
+      correct:         correctCount,
+      wrong:           answered - correctCount,
       accuracy:        pct,
+      score:           gs.score,
+      max_streak:      gs.maxStreak,
       vote_id:         gs.game.voteId,
       vote_short_name: gameName,
       user_vote:       gs.userVote ? (voteLabels[gs.userVote] || gs.userVote) : "דילג",
@@ -980,7 +1076,7 @@ function endGame(won) {
   }).catch(() => {});
 
   const gameUrl   = "https://gil1feldman.github.io/swipe_knesset/";
-  const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" במשחק "מצביעים על זה" 🗳️\nשחקו גם אתם: ${gameUrl}`);
+  const shareText = encodeURIComponent(`סיימתי "${gameName}" במשחק "מצביעים על זה" 🗳️\nניקוד: ${gs.score} | רצף מקסימלי: ${gs.maxStreak}🔥\nשחקו גם אתם: ${gameUrl}`);
 
   document.getElementById("deck-area").style.display  = "none";
   document.getElementById("controls").style.display   = "none";
@@ -991,12 +1087,34 @@ function endGame(won) {
     <div style="font-size:52px">${won ? "🏆" : "💔"}</div>
     <h2 style="color:#c9a84c;font-size:24px;margin:0;font-weight:700">${won ? "כל הכבוד!" : "נפסלת!"}</h2>
     <p style="color:#7a9cc4;font-size:13px;margin:0">
-      ${won ? `סיימת את כל ${gs.total} הכרטיסים!` : `ניחשת נכון ${correct} מתוך ${gs.idx} ח"כים`}
+      ${won ? `סיימת את כל ${gs.total} הכרטיסים!` : `ניחשת נכון ${correctCount} מתוך ${answered} ח"כים`}
     </p>
-    <div class="win-stats">
-      <div><div class="win-stat-label">✅ נכונות</div><div class="win-stat-value">${correct}</div></div>
+    <div style="font-size:32px;font-weight:900;font-family:monospace;color:#fff;letter-spacing:1px">
+      ${gs.score.toLocaleString()}
+      <span style="font-size:13px;color:#7a9cc4;font-weight:400">נקודות</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;width:100%;max-width:260px;font-size:12px;font-family:monospace">
+      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+        <span>✅ בסיס (${correctCount} נכונות)</span>
+        <span style="color:#fff">${gs.baseScore}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+        <span>⚡ בונוס מהירות</span>
+        <span style="color:#86efac">+${gs.speedBonus}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+        <span>🔥 בונוס רצף (מקס: ${gs.maxStreak})</span>
+        <span style="color:#fb923c">+${streakBonus}</span>
+      </div>
+      <div style="height:1px;background:rgba(255,255,255,0.1);margin:2px 0"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:700">
+        <span style="color:#c9a84c">סה"כ</span>
+        <span style="color:#c9a84c">${gs.score}</span>
+      </div>
+    </div>
+    <div class="win-stats" style="margin-top:0">
       <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
-      <div><div class="win-stat-label">❌ טעויות</div><div class="win-stat-value">${gs.idx - correct}</div></div>
+      <div><div class="win-stat-label">🔥 רצף מקס'</div><div class="win-stat-value">${gs.maxStreak}</div></div>
     </div>
     <div class="win-btns">
       <button class="btn btn-gold"  onclick="restartGame()">🔄 שחק שוב</button>
