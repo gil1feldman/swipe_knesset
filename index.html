@@ -57,6 +57,13 @@ body::before {
   color: #7a9cc4; border-radius: 8px; padding: 6px 13px;
   cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
 }
+.btn-help {
+  background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3);
+  color: #c9a84c; border-radius: 8px; padding: 6px 13px;
+  cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-help:hover { background: rgba(201,168,76,0.2); }
 .btn-refresh {
   background: transparent; border: 1px solid rgba(255,255,255,0.15);
   color: #7a9cc4; border-radius: 8px; padding: 8px 20px;
@@ -424,6 +431,8 @@ h1.main-title {
         <h1 class="main-title">🗳️ מצביעים על זה</h1>
         <p class="subtitle">נחש איך הצביעו חברי הכנסת</p>
         <div class="gold-line"></div>
+        <!-- כפתור הוראות במסך הבית -->
+        <button class="btn-help" onclick="openInstructions()" style="margin-top:14px">❓ איך משחקים?</button>
       </div>
 
       <div class="diff-wrap">
@@ -451,6 +460,8 @@ h1.main-title {
           <div id="play-title" class="play-title"></div>
           <div id="play-date"  class="play-date"></div>
         </div>
+        <!-- כפתור הוראות במסך המשחק -->
+        <button class="btn-help" onclick="openInstructions()">❓</button>
       </div>
 
       <div class="stats-bar">
@@ -540,7 +551,7 @@ h1.main-title {
 
 </div>
 
-<!-- MODAL -->
+<!-- MODAL הוראות -->
 <div id="modal-instructions" class="modal-overlay" style="display:none" onclick="closeModal(event)">
   <div class="modal-box">
     <div class="modal-title">🗳️ מצביעים על זה — איך משחקים?</div>
@@ -556,15 +567,19 @@ h1.main-title {
       <div class="modal-step">
         <div class="modal-step-icon">👉</div>
         <div class="modal-step-text">
-          <strong>ימינה</strong> = בעד &nbsp;|&nbsp; <strong>שמאלה</strong> = נגד &nbsp;|&nbsp; <strong>למעלה</strong> = נמנע
+          <strong>שמאלה</strong> = בעד &nbsp;|&nbsp; <strong>ימינה</strong> = נגד &nbsp;|&nbsp; <strong>למעלה</strong> = נמנע
         </div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-icon">⏱</div>
+        <div class="modal-step-text">יש לכם <strong>זמן מוגבל</strong> לכל כרטיס — תזמן תלוי ברמת הקושי</div>
       </div>
       <div class="modal-step">
         <div class="modal-step-icon">❤️</div>
         <div class="modal-step-text">יש לכם <strong>3 חיים</strong> — אל תטעו יותר מדי!</div>
       </div>
     </div>
-    <button class="btn btn-blue" onclick="dismissModal()" style="width:100%">בואו נשחק! ▶</button>
+    <button class="btn btn-blue" onclick="dismissModal()" style="width:100%">הבנתי, בואו נשחק! ▶</button>
   </div>
 </div>
 
@@ -677,7 +692,6 @@ async function loadGames(bustCache = false) {
       try {
         const data   = await fetchVoteDetails(voteId);
         const header = data.VoteHeader?.[0] || {};
-        // All members with vote key + faction name
         const members = (data.VoteDetails || [])
           .filter(d => normalizeVote(d.Title))
           .map(d => ({
@@ -706,10 +720,7 @@ async function loadGames(bustCache = false) {
     if (!games.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
     renderHome();
     showScreen("home");
-    if (!localStorage.getItem("swipe-knesset-seen")) {
-      localStorage.setItem("swipe-knesset-seen", "1");
-      document.getElementById("modal-instructions").style.display = "flex";
-    }
+    // ❌ הוסרה הקפיצה האוטומטית — ההוראות זמינות דרך הכפתור בלבד
   } catch (e) {
     document.getElementById("error-msg").textContent = e.message;
     showScreen("error");
@@ -767,13 +778,12 @@ function showHome() {
 let gs       = null;
 let locked   = false;
 let savedIdx = -1;
-let cardTimer = null;  // setTimeout handle for time-out
+let cardTimer = null;
 
 function startGame(idx) {
   savedIdx = idx;
   const game = allGames[idx];
 
-  // Ask the user how they'd vote — before showing any MKs
   document.getElementById("self-vote-topic").textContent =
     `"${game.shortName || game.title}"`;
   document.getElementById("modal-self-vote").style.display = "flex";
@@ -790,10 +800,9 @@ function submitSelfVote(choice) {
   const pool    = hasBibi ? [hasBibi, ...rest].slice(0, count) : rest.slice(0, count);
 
   gs = { game, deck: pool, idx: 0, score: 0, lives: 3, total: pool.length, over: false,
-         userVote: choice };   // choice = 'for' | 'against' | 'abstain' | null
+         userVote: choice };
   locked = false;
 
-  // Show deck, hide end
   document.getElementById("deck-area").style.display   = "flex";
   document.getElementById("end-screen").style.display  = "none";
   document.getElementById("controls").style.display    = "flex";
@@ -824,21 +833,18 @@ function startCardTimer() {
   const secs = DIFF_SECONDS[currentDiff];
   const bar  = document.getElementById("timer-bar");
 
-  // Reset bar
   bar.classList.remove("ticking", "urgent");
   bar.style.animationDuration = "";
-  void bar.offsetWidth;  // reflow to restart animation
+  void bar.offsetWidth;
 
   bar.style.animationDuration = secs + "s";
   bar.classList.add("ticking");
 
-  // Pulse urgent color in last 2 seconds
   const urgentDelay = Math.max(0, (secs - 2) * 1000);
   cardTimer = setTimeout(() => {
     bar.classList.add("urgent");
   }, urgentDelay);
 
-  // Time out = lose a life, move on
   cardTimer = setTimeout(() => {
     if (!gs || locked || gs.over) return;
     gs.lives--;
@@ -846,7 +852,6 @@ function startCardTimer() {
     const labels = { for: "בעד", against: "נגד", abstain: "נמנע" };
     showFeedback(false, `⏱ פג הזמן! הצביע ${labels[mk.vote] || "?"}`);
 
-    // Flash card red
     const card = document.getElementById("swipe-card");
     card.style.transition = "box-shadow 0.15s";
     card.style.boxShadow  = "0 0 0 3px rgba(239,68,68,0.7)";
@@ -885,7 +890,6 @@ function renderCard(first = false) {
     document.getElementById(id).style.opacity = "0";
   });
 
-  // Reset reveal badge
   const rb = document.getElementById("reveal-badge");
   rb.className = "reveal-badge"; rb.textContent = "";
 
@@ -899,7 +903,7 @@ function renderCard(first = false) {
 
   updateStatsUI();
   if (!first) startCardTimer();
-  else setTimeout(() => startCardTimer(), 350); // קצת השהיה לכרטיס הראשון
+  else setTimeout(() => startCardTimer(), 350);
 }
 
 // ══════════════════════════════════════════════
@@ -926,7 +930,6 @@ function doSwipe(direction) {
     showFeedback(false, `✗ טעות! הצביע ${labels[mk.vote] || "?"}`);
   }
 
-  // Show reveal badge briefly
   const rb = document.getElementById("reveal-badge");
   rb.textContent = `הצביע: ${labels[mk.vote]}`;
   rb.className   = `reveal-badge ${mk.vote} show`;
@@ -960,7 +963,6 @@ function endGame(won) {
   const pct     = Math.round((correct / Math.max(gs.idx, 1)) * 100);
   const gameName = gs.game.shortName || gs.game.title;
 
-  // שמירה לגיליון
   const voteLabels = { for: "בעד", against: "נגד", abstain: "נמנע" };
   fetch(SWIPE_URL, {
     method: "POST",
@@ -975,7 +977,8 @@ function endGame(won) {
       vote_short_name: gameName,
       user_vote:       gs.userVote ? (voteLabels[gs.userVote] || gs.userVote) : "דילג",
     }),
-  }).catch(() => {});  // שגיאה שקטה — לא מפריעה למשחק
+  }).catch(() => {});
+
   const gameUrl   = "https://gil1feldman.github.io/swipe_knesset/";
   const shareText = encodeURIComponent(`${won ? "ניצחתי" : "הגעתי ל"}-${correct} נכונות מתוך ${gs.idx} ח"כים בנושא "${gameName}" במשחק "מצביעים על זה" 🗳️\nשחקו גם אתם: ${gameUrl}`);
 
@@ -1070,8 +1073,15 @@ function setupSwipe() {
 // ══════════════════════════════════════════════
 // MODAL
 // ══════════════════════════════════════════════
-function dismissModal() { document.getElementById("modal-instructions").style.display = "none"; }
-function closeModal(e)  { if (e.target === document.getElementById("modal-instructions")) dismissModal(); }
+function openInstructions() {
+  document.getElementById("modal-instructions").style.display = "flex";
+}
+function dismissModal() {
+  document.getElementById("modal-instructions").style.display = "none";
+}
+function closeModal(e) {
+  if (e.target === document.getElementById("modal-instructions")) dismissModal();
+}
 
 // ══════════════════════════════════════════════
 // BOOT
