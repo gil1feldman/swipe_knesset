@@ -1183,7 +1183,7 @@ function endGame(won) {
   }).catch(() => {});
 
   const gameUrl   = "https://gil1feldman.github.io/swipe_knesset/";
-  const shareText = encodeURIComponent(`המשחק "מצביעים על זה" שמזכיר לנו איך הצביעו חברי הכנסת.\nאני הצלחתי לנחש ${correctCount} מתוך ${answered}.\nכמה תצליחו אתם? ${gameUrl}`);
+  const shareText = encodeURIComponent(`המשחק "מצביעים על זה" שמזכיר לנו איך הצביעו חברי הכנסת.\nאני הצלחתי לנחש ${correctCount} מתוך ${answered} בנושא: ${gameName}\nכמה תצליחו אתם? ${gameUrl}`);
 
   document.getElementById("deck-area").style.display  = "none";
   document.getElementById("controls").style.display   = "none";
