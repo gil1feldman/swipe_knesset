@@ -4,23 +4,53 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>מצביעים על זה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
+:root {
+  --navy:    #1a237e;
+  --navy2:   #1e2d7d;
+  --cyan:    #00bcd4;
+  --lime:    #c6d92f;
+  --pink:    #f0436a;
+  --bg:      #eaecf4;
+  --bg2:     #f2f4fb;
+  --surface: #ffffff;
+  --border:  rgba(26,35,126,0.12);
+  --text:    #1a237e;
+  --muted:   #6e7fb8;
+  --shadow:  0 4px 24px rgba(26,35,126,0.10);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   min-height: 100dvh;
-  background: linear-gradient(160deg, #0b1730 0%, #162354 55%, #0b1730 100%);
-  font-family: 'Frank Ruhl Libre', 'David Libre', Georgia, serif;
+  background: var(--bg);
+  font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
   direction: rtl;
-  color: #fff;
+  color: var(--text);
   overflow-x: hidden;
+  position: relative;
 }
 
+/* Grid background pattern */
 body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(201,168,76,0.07) 1px, transparent 0);
-  background-size: 32px 32px;
+  background-image:
+    linear-gradient(rgba(0,188,212,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,188,212,0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Radial glow top-right */
+body::after {
+  content: '';
+  position: fixed; top: -120px; left: -120px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(0,188,212,0.12) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
 }
 
 #app { position: relative; z-index: 1; }
@@ -37,108 +67,162 @@ body::before {
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(201,168,76,0.2);
-  border-top-color: #c9a84c;
+  border: 3px solid rgba(26,35,126,0.15);
+  border-top-color: var(--cyan);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
+/* Buttons */
 .btn {
   padding: 11px 22px; border-radius: 10px; border: none;
-  color: #fff; font-weight: 700; font-size: 15px;
-  cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+  font-weight: 700; font-size: 15px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
 }
-.btn:hover { opacity: 0.85; }
-.btn-blue  { background: linear-gradient(135deg, #1d3f8f, #2563eb); }
-.btn-gold  { background: linear-gradient(135deg, #92400e, #d97706); }
-.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #a0b4d4; }
-.btn-back  {
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
-  color: #7a9cc4; border-radius: 8px; padding: 6px 13px;
-  cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,35,126,0.2); }
+.btn-blue  { background: var(--navy); color: #fff; }
+.btn-gold  { background: var(--cyan); color: var(--navy); }
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
 }
-.btn-help {
-  background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3);
-  color: #c9a84c; border-radius: 8px; padding: 6px 13px;
-  cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
-  transition: background 0.15s;
-}
-.btn-help:hover { background: rgba(201,168,76,0.2); }
-.btn-refresh {
-  background: transparent; border: 1px solid rgba(255,255,255,0.15);
-  color: #7a9cc4; border-radius: 8px; padding: 8px 20px;
+.btn-back {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px; padding: 7px 14px;
   cursor: pointer; font-size: 13px; font-family: inherit;
+  box-shadow: var(--shadow); flex-shrink: 0;
+  transition: all 0.15s;
 }
+.btn-back:hover { border-color: var(--cyan); color: var(--navy); }
+.btn-help {
+  background: var(--surface);
+  border: 1.5px solid rgba(0,188,212,0.35);
+  color: var(--cyan);
+  border-radius: 8px; padding: 7px 14px;
+  cursor: pointer; font-size: 13px; font-family: inherit; flex-shrink: 0;
+  transition: all 0.15s; font-weight: 700;
+}
+.btn-help:hover { background: rgba(0,188,212,0.08); border-color: var(--cyan); }
+.btn-refresh {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  border-radius: 10px; padding: 9px 22px;
+  cursor: pointer; font-size: 13px; font-family: inherit;
+  box-shadow: var(--shadow);
+  transition: all 0.15s;
+}
+.btn-refresh:hover { border-color: var(--cyan); color: var(--navy); }
 .error-box {
-  color: #fca5a5; font-size: 13px; font-family: monospace;
+  color: #c0392b; font-size: 13px;
   max-width: 380px; line-height: 1.7;
-  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+  background: rgba(240,67,106,0.06); border: 1px solid rgba(240,67,106,0.25);
   border-radius: 10px; padding: 12px 16px;
 }
 
 /* ══ HOME ══ */
-.home-wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px; }
+.home-wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px 60px; }
 
-.logo-badge {
-  display: inline-block; border: 1px solid rgba(201,168,76,0.4);
-  padding: 3px 28px; margin-bottom: 10px; border-radius: 2px;
-  color: #c9a84c; font-size: 10px; letter-spacing: 5px; font-family: monospace;
+/* Logo bar */
+.logo-bar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin-bottom: 18px;
 }
+.logo-bars-icon {
+  display: flex; align-items: flex-end; gap: 3px; height: 36px;
+}
+.logo-bar-el {
+  border-radius: 3px 3px 0 0;
+  width: 9px;
+}
+.logo-bar-el:nth-child(1) { height: 36px; background: var(--cyan); }
+.logo-bar-el:nth-child(2) { height: 28px; background: var(--lime); }
+.logo-bar-el:nth-child(3) { height: 20px; background: var(--pink); }
+
+.logo-text-wrap { text-align: right; }
+.logo-text-main {
+  font-size: 26px; font-weight: 900; color: var(--navy);
+  line-height: 1.05; letter-spacing: -0.5px;
+}
+.logo-text-sub {
+  font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 2px;
+}
+
 h1.main-title {
-  color: #fff; font-size: clamp(28px,6vw,48px); font-weight: 700;
-  line-height: 1; text-shadow: 0 0 40px rgba(201,168,76,0.3); margin: 6px 0;
+  color: var(--navy); font-size: clamp(22px,5vw,32px); font-weight: 800;
+  line-height: 1.2; margin: 0 0 6px;
 }
-.subtitle { color: #7a9cc4; font-size: 15px; }
-.gold-line {
-  width: 60px; height: 2px; margin: 14px auto 0;
-  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
-}
+.subtitle { color: var(--muted); font-size: 15px; font-weight: 500; }
 
-.game-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+/* Accent bar */
+.accent-bar {
+  display: flex; gap: 4px; justify-content: center; margin: 10px 0 0;
+}
+.accent-bar span { height: 3px; border-radius: 3px; }
+.accent-bar span:nth-child(1) { width: 32px; background: var(--cyan); }
+.accent-bar span:nth-child(2) { width: 20px; background: var(--lime); }
+.accent-bar span:nth-child(3) { width: 12px; background: var(--pink); }
+
+/* Difficulty */
+.diff-wrap { display: flex; justify-content: center; gap: 8px; margin: 18px 0 0; }
+.diff-btn {
+  padding: 8px 20px; border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+.diff-btn:hover { border-color: var(--navy); color: var(--navy); }
+.diff-btn.easy.active   { background: rgba(198,217,47,0.15); border-color: var(--lime); color: #5a6b00; }
+.diff-btn.medium.active { background: rgba(0,188,212,0.1);  border-color: var(--cyan); color: var(--navy); }
+.diff-btn.hard.active   { background: rgba(240,67,106,0.1); border-color: var(--pink); color: var(--pink); }
+
+/* Game cards */
+.game-list { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 20px; }
 .game-card {
   position: relative; border-radius: 16px; overflow: hidden;
-  cursor: pointer; transition: transform 0.18s, box-shadow 0.18s;
-  display: flex; min-height: 90px;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; min-height: 88px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--border);
 }
-.game-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(26,35,126,0.18);
+  border-color: var(--cyan);
+}
 
 .card-banner {
-  flex-shrink: 0; width: 76px;
+  flex-shrink: 0; width: 72px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 4px; padding: 12px 8px;
-  background: linear-gradient(160deg, #1e3a8a, #1d4ed8);
+  background: var(--navy);
+  position: relative; overflow: hidden;
 }
-.banner-symbol { font-size: 28px; line-height: 1; color: #fff; }
-.banner-label  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.8); letter-spacing: 0.5px; }
+.card-banner::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(0,188,212,0.2), transparent);
+}
+.banner-symbol { font-size: 26px; line-height: 1; z-index: 1; }
+.banner-label  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.5px; z-index: 1; }
 
 .card-content {
-  flex: 1;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-right: none;
-  border-radius: 0 16px 16px 0;
-  padding: 12px 14px 12px 12px;
+  flex: 1; padding: 12px 14px 12px 12px;
   display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
 }
-.card-title { color: #fff; font-weight: 700; font-size: clamp(13px,2.5vw,15px); line-height: 1.4; }
+.card-title { color: var(--navy); font-weight: 800; font-size: clamp(13px,2.5vw,15px); line-height: 1.4; }
 .card-meta  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .pill {
   font-size: 11px; font-weight: 600; padding: 2px 9px;
-  border-radius: 20px; background: rgba(255,255,255,0.08); color: #7a9cc4;
+  border-radius: 20px; background: rgba(26,35,126,0.07); color: var(--muted);
 }
-.card-arrow { color: rgba(255,255,255,0.25); font-size: 16px; align-self: center; margin-right: auto; padding-left: 4px; }
-
-.diff-wrap { display: flex; justify-content: center; gap: 8px; margin: 14px 0 0; }
-.diff-btn {
-  padding: 7px 18px; border-radius: 20px; border: 1.5px solid rgba(201,168,76,0.3);
-  background: transparent; color: #7a9cc4; font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: inherit; transition: all 0.15s;
-}
-.diff-btn:hover { border-color: rgba(201,168,76,0.7); color: #fff; }
-.diff-btn.easy.active   { background: rgba(34,197,94,0.15);  border-color: #22c55e; color: #86efac; }
-.diff-btn.medium.active { background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #fde68a; }
-.diff-btn.hard.active   { background: rgba(239,68,68,0.15);  border-color: #ef4444; color: #fca5a5; }
+.card-arrow { color: var(--cyan); font-size: 16px; align-self: center; margin-right: auto; padding-left: 6px; }
 
 /* ══ PLAY ══ */
 #screen-play { height: 100dvh; overflow: hidden; display: none; }
@@ -151,33 +235,39 @@ h1.main-title {
 }
 
 .play-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; flex-shrink: 0; }
-.play-vote-type { color: #c9a84c; font-size: 10px; letter-spacing: 3px; font-family: monospace; margin-bottom: 2px; }
-.play-title { color: #fff; font-weight: 700; font-size: clamp(12px,3vw,15px); line-height: 1.2; }
-.play-date  { color: #7a9cc4; font-size: 11px; margin-top: 2px; }
+.play-vote-type {
+  font-size: 9px; letter-spacing: 3px; font-weight: 700;
+  color: var(--cyan); margin-bottom: 2px; text-transform: uppercase;
+}
+.play-title { color: var(--navy); font-weight: 800; font-size: clamp(12px,3vw,15px); line-height: 1.2; }
+.play-date  { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
+/* Stats bar */
 .stats-bar {
   display: flex; justify-content: space-around; align-items: center;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.18);
-  border-radius: 10px; padding: 6px 12px; margin-bottom: 8px; flex-shrink: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 7px 12px; margin-bottom: 8px; flex-shrink: 0;
+  box-shadow: var(--shadow);
 }
 .stat-box   { text-align: center; }
-.stat-label { color: #7a9cc4; font-size: 10px; margin-bottom: 1px; }
-.stat-val   { color: #fff; font-weight: 800; font-size: clamp(14px,3.5vw,18px); font-family: monospace; }
-.stat-divider { width: 1px; height: 26px; background: rgba(255,255,255,0.1); }
+.stat-label { color: var(--muted); font-size: 10px; font-weight: 600; margin-bottom: 1px; }
+.stat-val   { color: var(--navy); font-weight: 900; font-size: clamp(14px,3.5vw,18px); font-family: monospace; }
+.stat-divider { width: 1px; height: 26px; background: var(--border); }
 
 .hearts-wrap { display: flex; gap: 2px; justify-content: center; }
 .heart { font-size: 15px; transition: all 0.3s; }
-.heart.lost { filter: grayscale(1) opacity(0.25); transform: scale(0.75); }
+.heart.lost { filter: grayscale(1) opacity(0.2); transform: scale(0.75); }
 
-.progress-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 4px; overflow: hidden; flex-shrink: 0; }
-.progress-bar  { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#166534,#22c55e); transition: width 0.4s ease; width: 0%; }
+/* Progress */
+.progress-wrap { height: 4px; background: rgba(26,35,126,0.08); border-radius: 4px; margin-bottom: 4px; overflow: hidden; flex-shrink: 0; }
+.progress-bar  { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--navy), var(--cyan)); transition: width 0.4s ease; width: 0%; }
 
 /* Timer bar */
-.timer-wrap { height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; }
-.timer-bar  {
+.timer-wrap { height: 4px; background: rgba(26,35,126,0.08); border-radius: 4px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; }
+.timer-bar {
   height: 100%; border-radius: 4px; width: 100%;
-  background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
-  background-size: 200% 100%;
+  background: linear-gradient(90deg, var(--pink), var(--lime), var(--cyan));
   transform-origin: right center;
   transition: none;
 }
@@ -185,10 +275,8 @@ h1.main-title {
   from { transform: scaleX(1); }
   to   { transform: scaleX(0); }
 }
-.timer-bar.ticking {
-  animation: timerTick linear forwards;
-}
-.timer-bar.urgent { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.timer-bar.ticking { animation: timerTick linear forwards; }
+.timer-bar.urgent  { background: linear-gradient(90deg, var(--pink), #dc2626); }
 
 /* Stack area */
 .deck-area {
@@ -199,25 +287,26 @@ h1.main-title {
 }
 .stack-bg {
   position: absolute; border-radius: 18px; pointer-events: none;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  background: var(--surface); border: 1.5px solid var(--border);
+  box-shadow: var(--shadow);
 }
 .stack-bg-2 {
   width: calc(100% - 48px); max-width: 380px; height: 100%;
-  transform: translateY(12px) scale(0.95); opacity: 0.7;
+  transform: translateY(12px) scale(0.95); opacity: 0.6;
 }
 .stack-bg-3 {
   width: calc(100% - 68px); max-width: 360px; height: 100%;
-  transform: translateY(22px) scale(0.90); opacity: 0.4;
+  transform: translateY(22px) scale(0.90); opacity: 0.35;
 }
 
-/* The swipeable card */
+/* Swipe card */
 .swipe-card {
   position: relative;
   width: calc(100% - 20px); max-width: 420px;
-  background: linear-gradient(145deg, #1a2f6b, #0f1c3f);
-  border: 2px solid rgba(201,168,76,0.35);
+  background: var(--surface);
+  border: 2px solid var(--border);
   border-radius: 18px;
-  box-shadow: 0 16px 50px rgba(0,0,0,0.55);
+  box-shadow: 0 8px 40px rgba(26,35,126,0.14);
   display: flex; flex-direction: column;
   padding: 14px 16px 12px;
   cursor: grab; user-select: none; touch-action: none;
@@ -225,7 +314,6 @@ h1.main-title {
   flex: 1; min-height: 0; max-height: 100%;
 }
 .swipe-card:active { cursor: grabbing; }
-
 .swipe-card.animating {
   transition: transform 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.42s ease;
 }
@@ -242,32 +330,29 @@ h1.main-title {
 /* Stamps */
 .stamp {
   position: absolute; top: 14px;
-  font-size: 20px; font-weight: 900; letter-spacing: 2px;
+  font-size: 18px; font-weight: 900; letter-spacing: 2px;
   border-radius: 6px; padding: 3px 11px;
   border-width: 3px; border-style: solid;
   opacity: 0; pointer-events: none; font-family: monospace;
   white-space: nowrap; transition: opacity 0.07s;
 }
-.stamp-for     { right: 14px; color: #22c55e; border-color: #22c55e; transform: rotate(14deg); }
-.stamp-against { left: 14px;  color: #ef4444; border-color: #ef4444; transform: rotate(-14deg); }
-.stamp-abstain { top: 12px; left: 50%; transform: translateX(-50%); color: #f59e0b; border-color: #f59e0b; }
+.stamp-for     { right: 14px; color: #16a34a; border-color: #16a34a; transform: rotate(14deg); }
+.stamp-against { left: 14px;  color: var(--pink); border-color: var(--pink); transform: rotate(-14deg); }
+.stamp-abstain { top: 12px; left: 50%; transform: translateX(-50%); color: #d97706; border-color: #d97706; }
 
-/* Vote title inside card */
+/* Vote strip */
 .card-vote-strip {
-  background: rgba(201,168,76,0.09);
-  border: 1px solid rgba(201,168,76,0.22);
-  border-radius: 8px;
-  padding: 7px 10px;
-  text-align: center;
-  flex-shrink: 0;
-  margin-bottom: 10px;
+  background: rgba(26,35,126,0.04);
+  border: 1.5px solid rgba(26,35,126,0.1);
+  border-radius: 10px; padding: 7px 10px;
+  text-align: center; flex-shrink: 0; margin-bottom: 10px;
 }
 .card-vote-eyebrow {
-  font-size: 9px; letter-spacing: 2.5px; font-family: monospace;
-  color: rgba(201,168,76,0.5); display: block; margin-bottom: 3px;
+  font-size: 9px; letter-spacing: 2px; font-weight: 700;
+  color: var(--cyan); display: block; margin-bottom: 3px; text-transform: uppercase;
 }
 .card-vote-name {
-  font-size: 12px; font-weight: 700; color: #c9a84c; line-height: 1.4;
+  font-size: 12px; font-weight: 700; color: var(--navy); line-height: 1.4;
 }
 
 /* MK body */
@@ -276,81 +361,104 @@ h1.main-title {
   align-items: center; justify-content: center; gap: 9px; min-height: 0;
 }
 .mk-avatar {
-  width: 62px; height: 62px; border-radius: 50%;
-  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
-  border: 2px solid rgba(201,168,76,0.45);
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--navy);
+  border: 2px solid rgba(0,188,212,0.4);
   display: flex; align-items: center; justify-content: center;
   font-size: 28px; flex-shrink: 0;
 }
 .mk-name {
-  font-size: clamp(20px,5.5vw,28px); font-weight: 800;
-  text-align: center; line-height: 1.2; color: #fff;
+  font-size: clamp(20px,5.5vw,28px); font-weight: 900;
+  text-align: center; line-height: 1.2; color: var(--navy);
 }
 .mk-faction {
-  font-size: 12px; color: #7a9cc4; text-align: center;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px; padding: 2px 13px;
+  font-size: 12px; color: var(--muted); text-align: center;
+  background: rgba(26,35,126,0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 2px 13px; font-weight: 600;
 }
-.mk-num { font-size: 10px; color: rgba(201,168,76,0.4); font-family: monospace; letter-spacing: 1px; margin-top: 2px; }
+.mk-num { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; font-weight: 600; }
 
-/* Controls */
-.controls {
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px; padding: 8px 16px 10px; flex-shrink: 0;
-}
-.ctrl-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  border: none; cursor: pointer; font-family: inherit;
-  transition: transform 0.12s; border-radius: 50%;
-  width: 60px; height: 60px; justify-content: center;
-}
-.ctrl-btn:active { transform: scale(0.88); }
-.ctrl-against { background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.45); }
-.ctrl-against:hover { background: rgba(239,68,68,0.28); }
-.ctrl-abstain { background: rgba(245,158,11,0.1); border: 2px solid rgba(245,158,11,0.3); width: 46px; height: 46px; }
-.ctrl-abstain:hover { background: rgba(245,158,11,0.2); }
-.ctrl-for { background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.45); }
-.ctrl-for:hover { background: rgba(34,197,94,0.28); }
-.ctrl-icon  { font-size: 22px; line-height: 1; }
-.ctrl-label { font-size: 11px; font-weight: 700; }
-.ctrl-against .ctrl-label { color: #fca5a5; }
-.ctrl-for     .ctrl-label { color: #86efac; }
-.ctrl-abstain .ctrl-label { color: #fde68a; font-size: 9px; }
-
-.swipe-hint {
-  display: flex; gap: 18px; justify-content: center;
-  font-size: 10px; color: rgba(255,255,255,0.18);
-  padding-bottom: 2px; flex-shrink: 0; font-family: monospace;
-}
-
-/* Reveal badge shown on card after swipe */
+/* Reveal badge */
 .reveal-badge {
   position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
   font-size: 11px; font-weight: 700; font-family: monospace;
   padding: 3px 14px; border-radius: 20px; white-space: nowrap;
-  opacity: 0; transition: opacity 0.3s 0.2s;
-  pointer-events: none;
+  opacity: 0; transition: opacity 0.3s 0.2s; pointer-events: none;
 }
 .reveal-badge.show { opacity: 1; }
-.reveal-badge.for     { color: #86efac; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); }
-.reveal-badge.against { color: #fca5a5; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); }
-.reveal-badge.abstain { color: #fde68a; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.28); }
-@keyframes pop { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+.reveal-badge.for     { color: #16a34a; background: rgba(22,163,74,0.1);  border: 1px solid rgba(22,163,74,0.3); }
+.reveal-badge.against { color: var(--pink); background: rgba(240,67,106,0.1); border: 1px solid rgba(240,67,106,0.3); }
+.reveal-badge.abstain { color: #d97706; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); }
+
+/* Controls */
+.controls {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; padding: 8px 16px 4px; flex-shrink: 0;
+}
+.ctrl-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: none; cursor: pointer; font-family: inherit;
+  transition: all 0.12s; border-radius: 50%;
+  width: 60px; height: 60px; justify-content: center;
+  box-shadow: 0 4px 14px rgba(26,35,126,0.12);
+}
+.ctrl-btn:active { transform: scale(0.88); }
+.ctrl-against { background: rgba(240,67,106,0.1); border: 2px solid rgba(240,67,106,0.45); }
+.ctrl-against:hover { background: rgba(240,67,106,0.2); }
+.ctrl-abstain { background: rgba(217,119,6,0.08); border: 2px solid rgba(217,119,6,0.3); width: 46px; height: 46px; }
+.ctrl-abstain:hover { background: rgba(217,119,6,0.18); }
+.ctrl-for { background: rgba(22,163,74,0.1); border: 2px solid rgba(22,163,74,0.4); }
+.ctrl-for:hover { background: rgba(22,163,74,0.2); }
+.ctrl-icon  { font-size: 22px; line-height: 1; }
+.ctrl-label { font-size: 11px; font-weight: 700; }
+.ctrl-against .ctrl-label { color: var(--pink); }
+.ctrl-for     .ctrl-label { color: #16a34a; }
+.ctrl-abstain .ctrl-label { color: #d97706; font-size: 9px; }
+
+.swipe-hint {
+  display: flex; gap: 18px; justify-content: center;
+  font-size: 10px; color: var(--muted);
+  padding-bottom: 2px; flex-shrink: 0; font-family: monospace; font-weight: 600;
+}
+
+/* Streak */
+.streak-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 800; font-family: monospace;
+  padding: 2px 10px; border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.streak-badge.streak-0  { color: var(--muted); background: transparent; border: 1px solid var(--border); }
+.streak-badge.streak-on { color: #b45309; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.35); }
+.streak-badge.streak-x2 { color: #c2410c; background: rgba(194,65,12,0.12); border: 1px solid rgba(194,65,12,0.45); }
+.streak-badge.streak-x3 { color: var(--pink); background: rgba(240,67,106,0.1); border: 1px solid rgba(240,67,106,0.45); }
+@keyframes streakPop { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 100%{transform:scale(1)} }
+.streak-badge.pop { animation: streakPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+
+@keyframes scoreBump {
+  0%{transform:scale(1)} 35%{transform:scale(1.3);color:var(--cyan)} 100%{transform:scale(1)}
+}
+.score-bump { animation: scoreBump 0.3s ease; }
+
+/* End screen */
+@keyframes pop { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
 .end-screen-wrap {
   flex: 1; display: flex; flex-direction: column;
   align-items: stretch; padding-bottom: 8px; min-height: 0;
 }
 .end-screen-inner {
-  background: rgba(255,255,255,0.05); border: 2px solid rgba(201,168,76,0.45);
+  background: var(--surface);
+  border: 2px solid var(--border);
   border-radius: 20px; padding: 28px 22px; text-align: center;
   animation: pop 0.45s cubic-bezier(0.34,1.56,0.64,1);
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 12px; min-height: 0;
+  box-shadow: 0 12px 50px rgba(26,35,126,0.14);
 }
-.win-stats { display: flex; justify-content: center; gap: 28px; }
-.win-stat-label { color: #7a9cc4; font-size: 12px; margin-bottom: 4px; }
-.win-stat-value { color: #c9a84c; font-weight: 800; font-size: 26px; font-family: monospace; }
+.win-stat-label { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.win-stat-value { color: var(--navy); font-weight: 900; font-size: 26px; font-family: monospace; }
 .win-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 /* Feedback */
@@ -358,8 +466,8 @@ h1.main-title {
   position: fixed; inset: 0; z-index: 50; pointer-events: none;
   opacity: 0; transition: opacity 0.15s;
 }
-.feedback-flash.red   { background: rgba(239,68,68,0.18); }
-.feedback-flash.green { background: rgba(34,197,94,0.12); }
+.feedback-flash.red   { background: rgba(240,67,106,0.12); }
+.feedback-flash.green { background: rgba(22,163,74,0.1); }
 
 .float-feedback {
   position: fixed; top: 32%; left: 50%;
@@ -370,63 +478,68 @@ h1.main-title {
   transition: all 0.15s; font-family: monospace; white-space: nowrap;
 }
 .float-feedback.show { opacity: 1; transform: translateX(-50%) scale(1); }
-.float-feedback.correct { color: #86efac; background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.35); }
-.float-feedback.wrong   { color: #fca5a5; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.35); }
-
-/* Streak badge */
-.streak-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 12px; font-weight: 800; font-family: monospace;
-  padding: 2px 10px; border-radius: 20px;
-  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  white-space: nowrap;
-}
-.streak-badge.streak-0 { color: rgba(255,255,255,0.2); background: transparent; border: 1px solid rgba(255,255,255,0.08); }
-.streak-badge.streak-on { color: #fde68a; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); }
-.streak-badge.streak-x2 { color: #fb923c; background: rgba(251,146,60,0.18); border: 1px solid rgba(251,146,60,0.5); }
-.streak-badge.streak-x3 { color: #f87171; background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.5);
-  text-shadow: 0 0 8px rgba(248,113,113,0.6); }
-
-@keyframes streakPop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.45); }
-  100% { transform: scale(1); }
-}
-.streak-badge.pop { animation: streakPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
-
-/* Score bump animation */
-@keyframes scoreBump {
-  0%   { transform: scale(1); }
-  35%  { transform: scale(1.3); color: #fde68a; }
-  100% { transform: scale(1); }
-}
-.score-bump { animation: scoreBump 0.3s ease; }
+.float-feedback.correct { color: #16a34a; background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.3); }
+.float-feedback.wrong   { color: var(--pink); background: rgba(240,67,106,0.1); border: 1px solid rgba(240,67,106,0.3); }
 
 /* Modal */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(5,12,35,0.85); backdrop-filter: blur(4px);
+  background: rgba(26,35,126,0.35); backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center; padding: 20px;
   animation: fadeIn 0.2s ease;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
 .modal-box {
-  background: linear-gradient(160deg, #0f2050, #1a3570);
-  border: 1px solid rgba(201,168,76,0.4);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   border-radius: 20px; padding: 28px 24px;
   max-width: 420px; width: 100%; text-align: center;
   animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 20px 60px rgba(26,35,126,0.2);
 }
-.modal-title { color: #c9a84c; font-size: 20px; font-weight: 700; margin-bottom: 18px; }
-.modal-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; text-align: right; }
+.modal-title { color: var(--navy); font-size: 20px; font-weight: 900; margin-bottom: 18px; }
+.modal-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; text-align: right; }
 .modal-step {
   display: flex; align-items: flex-start; gap: 12px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(26,35,126,0.03);
+  border: 1px solid var(--border);
   border-radius: 12px; padding: 10px 14px;
 }
 .modal-step-icon { font-size: 22px; flex-shrink: 0; line-height: 1.4; }
-.modal-step-text { color: #cbd5e1; font-size: 14px; line-height: 1.6; }
-.modal-step-text strong { color: #fff; }
+.modal-step-text { color: #4a5568; font-size: 14px; line-height: 1.6; }
+.modal-step-text strong { color: var(--navy); }
+
+/* Credit footer */
+.credit-footer {
+  text-align: center;
+  padding: 10px 16px 16px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.credit-footer a {
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* Loading screen */
+.load-logo-bar {
+  display: flex; align-items: flex-end; gap: 4px; height: 44px; margin-bottom: 8px;
+}
+.load-logo-bar span {
+  border-radius: 3px 3px 0 0;
+  width: 11px;
+  animation: barPulse 1.2s ease-in-out infinite;
+}
+.load-logo-bar span:nth-child(1) { height: 44px; background: var(--cyan); animation-delay: 0s; }
+.load-logo-bar span:nth-child(2) { height: 34px; background: var(--lime); animation-delay: 0.15s; }
+.load-logo-bar span:nth-child(3) { height: 24px; background: var(--pink); animation-delay: 0.3s; }
+@keyframes barPulse {
+  0%,100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.5; transform: scaleY(0.75); }
+}
 </style>
 </head>
 <body>
@@ -435,10 +548,12 @@ h1.main-title {
   <!-- LOADING -->
   <div id="screen-loading" class="screen active">
     <div class="center">
-      <div style="font-size:52px">🗳️</div>
-      <div style="color:#c9a84c;font-size:22px;font-weight:700">מצביעים על זה</div>
+      <div class="load-logo-bar">
+        <span></span><span></span><span></span>
+      </div>
+      <div style="color:var(--navy);font-size:26px;font-weight:900;letter-spacing:-0.5px">מצביעים על זה</div>
       <div class="spinner"></div>
-      <div id="load-msg" style="color:#7a9cc4;font-size:13px;font-family:monospace;max-width:300px"></div>
+      <div id="load-msg" style="color:var(--muted);font-size:13px;max-width:300px;font-weight:500"></div>
     </div>
   </div>
 
@@ -446,7 +561,7 @@ h1.main-title {
   <div id="screen-error" class="screen">
     <div class="center">
       <div style="font-size:48px">⚠️</div>
-      <div style="color:#f87171;font-size:18px;font-weight:700">שגיאה בטעינה</div>
+      <div style="color:var(--pink);font-size:18px;font-weight:800">שגיאה בטעינה</div>
       <div id="error-msg" class="error-box"></div>
       <button class="btn btn-blue" onclick="loadGames(true)">🔄 נסה שוב</button>
     </div>
@@ -455,12 +570,13 @@ h1.main-title {
   <!-- HOME -->
   <div id="screen-home" class="screen">
     <div class="home-wrap">
-      <div style="text-align:center;margin-bottom:32px">
-        <div class="logo-badge">כנסת ישראל</div>
+
+      <div style="text-align:center;margin-bottom:28px">
         <h1 class="main-title">🗳️ מצביעים על זה</h1>
         <p class="subtitle">נחש איך הצביעו חברי הכנסת</p>
-        <div class="gold-line"></div>
-        <!-- כפתור הוראות במסך הבית -->
+        <div class="accent-bar">
+          <span></span><span></span><span></span>
+        </div>
         <button class="btn-help" onclick="openInstructions()" style="margin-top:14px">❓ איך משחקים?</button>
       </div>
 
@@ -470,12 +586,16 @@ h1.main-title {
         <button class="diff-btn hard"          id="diff-hard"   onclick="setDiff('hard')">קשה · 30</button>
       </div>
 
-      <div id="game-list" class="game-list" style="margin-top:14px"></div>
+      <div id="game-list" class="game-list"></div>
 
-      <div style="text-align:center">
+      <div style="text-align:center;margin-bottom:8px">
         <button class="btn-refresh" onclick="renderHome()">🔀 הצבעות אחרות</button>
       </div>
+
     </div>
+
+    <!-- Credit -->
+    <div class="credit-footer">פיתוח: גיל פלדמן</div>
   </div>
 
   <!-- PLAY -->
@@ -489,7 +609,6 @@ h1.main-title {
           <div id="play-title" class="play-title"></div>
           <div id="play-date"  class="play-date"></div>
         </div>
-        <!-- כפתור הוראות במסך המשחק -->
         <button class="btn-help" onclick="openInstructions()">❓</button>
       </div>
 
@@ -501,7 +620,7 @@ h1.main-title {
         <div class="stat-divider"></div>
         <div class="stat-box">
           <div class="stat-label">ניקוד</div>
-          <div class="stat-val" id="stat-score" style="color:#86efac">0</div>
+          <div class="stat-val" id="stat-score" style="color:var(--cyan)">0</div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-box">
@@ -524,7 +643,6 @@ h1.main-title {
       <div class="progress-wrap">
         <div class="progress-bar" id="progress-bar"></div>
       </div>
-
       <div class="timer-wrap">
         <div class="timer-bar" id="timer-bar"></div>
       </div>
@@ -539,24 +657,21 @@ h1.main-title {
           <div class="stamp stamp-against" id="stamp-against">✗ נגד</div>
           <div class="stamp stamp-abstain" id="stamp-abstain">↕ נמנע</div>
 
-          <!-- Vote title strip -->
           <div class="card-vote-strip">
             <span class="card-vote-eyebrow">נושא ההצבעה</span>
             <div class="card-vote-name" id="card-vote-name">—</div>
           </div>
 
-          <!-- MK -->
           <div class="mk-body">
             <div class="mk-avatar">👤</div>
             <div class="mk-name" id="mk-name">—</div>
             <div class="mk-num"  id="mk-num"></div>
           </div>
-          <!-- Reveal badge (shown momentarily after answer) -->
           <div class="reveal-badge" id="reveal-badge"></div>
         </div>
       </div>
 
-      <!-- End screen (replaces deck-area when game ends) -->
+      <!-- End screen -->
       <div id="end-screen" style="display:none" class="end-screen-wrap">
         <div class="end-screen-inner" id="end-screen-inner"></div>
       </div>
@@ -581,6 +696,8 @@ h1.main-title {
           <span class="ctrl-label">בעד</span>
         </button>
       </div>
+
+      <div class="credit-footer" style="padding:4px 16px 10px">פיתוח: גיל פלדמן</div>
 
     </div>
   </div>
@@ -626,16 +743,16 @@ h1.main-title {
 <div id="modal-self-vote" class="modal-overlay" style="display:none">
   <div class="modal-box">
     <div class="modal-title">🤔 ואתה — איך היית מצביע?</div>
-    <p style="color:#7a9cc4;font-size:14px;margin:-8px 0 20px;line-height:1.6" id="self-vote-topic"></p>
+    <p style="color:var(--muted);font-size:14px;margin:-8px 0 20px;line-height:1.6" id="self-vote-topic"></p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="btn" style="background:rgba(239,68,68,0.18);border:1.5px solid rgba(239,68,68,0.5);color:#fca5a5;flex:1;min-width:80px"
+      <button class="btn" style="background:rgba(240,67,106,0.1);border:1.5px solid rgba(240,67,106,0.45);color:var(--pink);flex:1;min-width:80px"
         onclick="submitSelfVote('against')">✗ נגד</button>
-      <button class="btn" style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.4);color:#fde68a;flex:1;min-width:80px"
+      <button class="btn" style="background:rgba(217,119,6,0.08);border:1.5px solid rgba(217,119,6,0.35);color:#d97706;flex:1;min-width:80px"
         onclick="submitSelfVote('abstain')">↕ נמנע</button>
-      <button class="btn" style="background:rgba(34,197,94,0.15);border:1.5px solid rgba(34,197,94,0.5);color:#86efac;flex:1;min-width:80px"
+      <button class="btn" style="background:rgba(22,163,74,0.1);border:1.5px solid rgba(22,163,74,0.4);color:#16a34a;flex:1;min-width:80px"
         onclick="submitSelfVote('for')">✓ בעד</button>
     </div>
-    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px">
+    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px;color:var(--muted)">
       דלג
     </button>
   </div>
@@ -756,7 +873,6 @@ async function loadGames(bustCache = false) {
     if (!games.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
     renderHome();
     showScreen("home");
-    // ❌ הוסרה הקפיצה האוטומטית — ההוראות זמינות דרך הכפתור בלבד
   } catch (e) {
     document.getElementById("error-msg").textContent = e.message;
     showScreen("error");
@@ -792,8 +908,8 @@ function renderHome() {
       <div class="card-content">
         <div class="card-title">${esc(game.shortName || game.title)}</div>
         <div class="card-meta">
-          ${game.date     ? `<span class="pill"><span style="color:#7a9cc4;font-weight:400">תאריך: </span>${esc(game.date)}</span>` : ""}
-          ${game.decision ? `<span class="pill"><span style="color:#7a9cc4;font-weight:400">החלטה: </span>${esc(game.decision)}</span>` : ""}
+          ${game.date     ? `<span class="pill"><span style="color:var(--muted);font-weight:400">תאריך: </span>${esc(game.date)}</span>` : ""}
+          ${game.decision ? `<span class="pill"><span style="color:var(--muted);font-weight:400">החלטה: </span>${esc(game.decision)}</span>` : ""}
           <span class="pill">${game.members.length} ח"כים</span>
         </div>
       </div>
@@ -863,7 +979,6 @@ function updateStatsUI() {
   for (let i = 1; i <= 3; i++)
     document.getElementById("h" + i).classList.toggle("lost", i > gs.lives);
 
-  // Streak badge
   const sb = document.getElementById("streak-badge");
   const s  = gs.streak;
   sb.classList.remove("streak-0","streak-on","streak-x2","streak-x3","pop");
@@ -876,7 +991,7 @@ function updateStatsUI() {
 
 function startCardTimer() {
   stopCardTimer();
-  cardStartTime = Date.now();   // ⏱ מתי התחיל הכרטיס
+  cardStartTime = Date.now();
   const secs = DIFF_SECONDS[currentDiff];
   const bar  = document.getElementById("timer-bar");
 
@@ -895,14 +1010,14 @@ function startCardTimer() {
   cardTimer = setTimeout(() => {
     if (!gs || locked || gs.over) return;
     gs.lives--;
-    gs.streak = 0;   // פג הזמן — שובר רצף
+    gs.streak = 0;
     const mk     = gs.deck[gs.idx];
     const labels = { for: "בעד", against: "נגד", abstain: "נמנע" };
     showFeedback(false, `⏱ פג הזמן! הצביע ${labels[mk.vote] || "?"}`);
 
     const card = document.getElementById("swipe-card");
     card.style.transition = "box-shadow 0.15s";
-    card.style.boxShadow  = "0 0 0 3px rgba(239,68,68,0.7)";
+    card.style.boxShadow  = "0 0 0 3px rgba(240,67,106,0.6)";
     setTimeout(() => { card.style.boxShadow = ""; }, 400);
 
     locked = true;
@@ -976,15 +1091,11 @@ function doSwipe(direction) {
   if (correct) {
     const secs      = DIFF_SECONDS[currentDiff];
     const elapsed   = (Date.now() - cardStartTime) / 1000;
-    const timeRatio = Math.max(0, 1 - elapsed / secs);   // 1=מיידי, 0=בדיוק בזמן
+    const timeRatio = Math.max(0, 1 - elapsed / secs);
 
-    // בסיס לפי קושי
-    const base = { easy: 100, medium: 150, hard: 200 }[currentDiff];
-
-    // בונוס מהירות: עד +50% (חצי בסיס)
+    const base  = { easy: 100, medium: 150, hard: 200 }[currentDiff];
     const speed = Math.round(base * 0.5 * timeRatio);
 
-    // מכפיל רצף: ×1 / ×2 / ×3
     gs.streak++;
     if (gs.streak > gs.maxStreak) gs.maxStreak = gs.streak;
     const mult = gs.streak >= 5 ? 3 : gs.streak >= 3 ? 2 : 1;
@@ -994,7 +1105,6 @@ function doSwipe(direction) {
     gs.baseScore  += base;
     gs.speedBonus += speed;
 
-    // פידבק ויזואלי
     const parts = [`✓ נכון! +${earned}`];
     if (speed > 0)  parts.push(`⚡+${speed}`);
     if (mult  > 1)  parts.push(`🔥×${mult}`);
@@ -1002,7 +1112,6 @@ function doSwipe(direction) {
 
     updateStatsUI();
 
-    // באמפ ניקוד
     const sv = document.getElementById("stat-score");
     sv.classList.remove("score-bump");
     void sv.offsetWidth;
@@ -1045,14 +1154,9 @@ function endGame(won) {
   gs.over = true; locked = false;
   stopCardTimer();
 
-  const correct   = gs.idx - (gs.lives < 0 ? 0 : 0);  // count from score
   const answered  = gs.idx;
-  // recalculate correct count from score isn't reliable anymore — count directly
-  let correctCount = 0;
-  // We track via score: but since multipliers vary, let's count from baseScore
-  // baseScore = base * correct answers (before multiplier), so:
   const basePerQ  = { easy: 100, medium: 150, hard: 200 }[currentDiff];
-  correctCount    = Math.round(gs.baseScore / basePerQ);
+  const correctCount = Math.round(gs.baseScore / basePerQ);
   const pct       = Math.round((correctCount / Math.max(answered, 1)) * 100);
   const gameName  = gs.game.shortName || gs.game.title;
   const streakBonus = gs.score - gs.baseScore - gs.speedBonus;
@@ -1088,39 +1192,39 @@ function endGame(won) {
 
   document.getElementById("end-screen-inner").innerHTML = `
     <div style="font-size:52px">${won ? "🏆" : "💔"}</div>
-    <h2 style="color:#c9a84c;font-size:24px;margin:0;font-weight:700">${won ? "כל הכבוד!" : "נפסלת!"}</h2>
-    <p style="color:#7a9cc4;font-size:13px;margin:0">
+    <h2 style="color:var(--navy);font-size:24px;margin:0;font-weight:900">${won ? "כל הכבוד!" : "נפסלת!"}</h2>
+    <p style="color:var(--muted);font-size:13px;margin:0">
       ${won ? `סיימת את כל ${gs.total} הכרטיסים!` : `ניחשת נכון ${correctCount} מתוך ${answered} ח"כים`}
     </p>
-    <div style="font-size:32px;font-weight:900;font-family:monospace;color:#fff;letter-spacing:1px">
+    <div style="font-size:32px;font-weight:900;font-family:monospace;color:var(--navy);letter-spacing:1px">
       ${gs.score.toLocaleString()}
-      <span style="font-size:13px;color:#7a9cc4;font-weight:400">נקודות</span>
+      <span style="font-size:13px;color:var(--muted);font-weight:500">נקודות</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:4px;width:100%;max-width:260px;font-size:12px;font-family:monospace">
-      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+      <div style="display:flex;justify-content:space-between;color:var(--muted)">
         <span>✅ בסיס (${correctCount} נכונות)</span>
-        <span style="color:#fff">${gs.baseScore}</span>
+        <span style="color:var(--navy)">${gs.baseScore}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+      <div style="display:flex;justify-content:space-between;color:var(--muted)">
         <span>⚡ בונוס מהירות</span>
-        <span style="color:#86efac">+${gs.speedBonus}</span>
+        <span style="color:#16a34a">+${gs.speedBonus}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;color:#7a9cc4">
+      <div style="display:flex;justify-content:space-between;color:var(--muted)">
         <span>🔥 בונוס רצף (מקס: ${gs.maxStreak})</span>
-        <span style="color:#fb923c">+${streakBonus}</span>
+        <span style="color:#d97706">+${streakBonus}</span>
       </div>
-      <div style="height:1px;background:rgba(255,255,255,0.1);margin:2px 0"></div>
+      <div style="height:1px;background:var(--border);margin:2px 0"></div>
       <div style="display:flex;justify-content:space-between;font-weight:700">
-        <span style="color:#c9a84c">סה"כ</span>
-        <span style="color:#c9a84c">${gs.score}</span>
+        <span style="color:var(--cyan)">סה"כ</span>
+        <span style="color:var(--navy)">${gs.score}</span>
       </div>
     </div>
-    <div class="win-stats" style="margin-top:0">
+    <div style="display:flex;justify-content:center;gap:28px;margin-top:0">
       <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
       <div><div class="win-stat-label">🔥 רצף מקס'</div><div class="win-stat-value">${gs.maxStreak}</div></div>
     </div>
     <div class="win-btns">
-      <button class="btn btn-gold"  onclick="restartGame()">🔄 שחק שוב</button>
+      <button class="btn btn-blue" onclick="restartGame()">🔄 שחק שוב</button>
       <button class="btn btn-ghost" onclick="showHome()">🏠 בחר הצבעה</button>
     </div>
     <button onclick="window.open('https://wa.me/?text=${shareText}','_blank')"
