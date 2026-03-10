@@ -665,7 +665,7 @@ h1.main-title {
           <div class="mk-body">
             <div class="mk-avatar">👤</div>
             <div class="mk-name" id="mk-name">—</div>
-            <div class="mk-num"  id="mk-num"></div>
+            <div class="mk-num"  id="mk-num" style="display:none"></div>
           </div>
           <div class="reveal-badge" id="reveal-badge"></div>
         </div>
@@ -1223,14 +1223,13 @@ function endGame(won) {
       <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
       <div><div class="win-stat-label">🔥 רצף מקס'</div><div class="win-stat-value">${gs.maxStreak}</div></div>
     </div>
-    <div class="win-btns">
-      <button class="btn btn-blue" onclick="restartGame()">🔄 שחק שוב</button>
-      <button class="btn btn-ghost" onclick="showHome()">🏠 בחר הצבעה</button>
-    </div>
-    <button onclick="window.open('https://wa.me/?text=${shareText}','_blank')"
-      style="width:100%;background:linear-gradient(135deg,#128C7E,#25D366);border:none;border-radius:10px;padding:11px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">
-      📲 שתף בוואטסאפ
-    </button>`;
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;width:100%">
+      <button class="btn btn-blue" onclick="restartGame()" style="flex:1;min-width:0">🔄 שחק שוב</button>
+      <button class="btn btn-ghost" onclick="showHome()" style="flex:1;min-width:0">🏠 בחר הצבעה</button>
+      <button onclick="window.open('https://wa.me/?text=${shareText}','_blank')"
+        style="flex:1;min-width:0;background:linear-gradient(135deg,#128C7E,#25D366);border:none;border-radius:10px;padding:11px 6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">
+        📲 שתף</button>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════
