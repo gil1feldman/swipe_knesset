@@ -446,15 +446,16 @@ h1.main-title {
 @keyframes pop { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
 .end-screen-wrap {
   flex: 1; display: flex; flex-direction: column;
-  align-items: stretch; padding-bottom: 8px; min-height: 0;
+  align-items: stretch; padding-bottom: 0; min-height: 0;
 }
 .end-screen-inner {
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 20px; padding: 28px 22px; text-align: center;
+  border-radius: 20px; padding: 20px 18px; text-align: center;
   animation: pop 0.45s cubic-bezier(0.34,1.56,0.64,1);
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px; min-height: 0;
+  align-items: center; justify-content: center; gap: 10px; min-height: 0;
+  overflow-y: auto;
   box-shadow: 0 12px 50px rgba(26,35,126,0.14);
 }
 .win-stat-label { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
@@ -674,6 +675,7 @@ h1.main-title {
       <!-- End screen -->
       <div id="end-screen" style="display:none" class="end-screen-wrap">
         <div class="end-screen-inner" id="end-screen-inner"></div>
+        <div class="credit-footer" style="padding:6px 16px 10px;flex-shrink:0">פיתוח: גיל פלדמן</div>
       </div>
 
       <div class="swipe-hint" id="swipe-hint">
@@ -696,8 +698,6 @@ h1.main-title {
           <span class="ctrl-label">בעד</span>
         </button>
       </div>
-
-      <div class="credit-footer" style="padding:4px 16px 10px">פיתוח: גיל פלדמן</div>
 
     </div>
   </div>
@@ -1223,11 +1223,11 @@ function endGame(won) {
       <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
       <div><div class="win-stat-label">🔥 רצף מקס'</div><div class="win-stat-value">${gs.maxStreak}</div></div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;width:100%">
-      <button class="btn btn-blue" onclick="restartGame()" style="flex:1;min-width:0">🔄 שחק שוב</button>
-      <button class="btn btn-ghost" onclick="showHome()" style="flex:1;min-width:0">🏠 בחר הצבעה</button>
+    <div style="display:flex;gap:8px;justify-content:center;width:100%;margin-top:4px">
+      <button class="btn btn-blue" onclick="restartGame()" style="flex:1;font-size:13px;padding:10px 8px">🔄 שחק שוב</button>
+      <button class="btn btn-ghost" onclick="showHome()" style="flex:1;font-size:13px;padding:10px 8px">🏠 בחר הצבעה</button>
       <button onclick="window.open('https://wa.me/?text=${shareText}','_blank')"
-        style="flex:1;min-width:0;background:linear-gradient(135deg,#128C7E,#25D366);border:none;border-radius:10px;padding:11px 6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">
+        style="flex:1;background:linear-gradient(135deg,#128C7E,#25D366);border:none;border-radius:10px;padding:10px 8px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">
         📲 שתף</button>
     </div>`;
 }
