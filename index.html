@@ -34,7 +34,6 @@ body {
   position: relative;
 }
 
-/* Grid background pattern */
 body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -44,7 +43,6 @@ body::before {
   background-size: 40px 40px;
 }
 
-/* Radial glow top-right */
 body::after {
   content: '';
   position: fixed; top: -120px; left: -120px;
@@ -73,7 +71,6 @@ body::after {
   animation: spin 0.8s linear infinite;
 }
 
-/* Buttons */
 .btn {
   padding: 11px 22px; border-radius: 10px; border: none;
   font-weight: 700; font-size: 15px;
@@ -126,7 +123,6 @@ body::after {
 /* ══ HOME ══ */
 .home-wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px 60px; }
 
-/* Logo bar */
 .logo-bar {
   display: flex; align-items: center; justify-content: center;
   gap: 10px; margin-bottom: 18px;
@@ -157,7 +153,6 @@ h1.main-title {
 }
 .subtitle { color: var(--muted); font-size: 15px; font-weight: 500; }
 
-/* Accent bar */
 .accent-bar {
   display: flex; gap: 4px; justify-content: center; margin: 10px 0 0;
 }
@@ -166,7 +161,6 @@ h1.main-title {
 .accent-bar span:nth-child(2) { width: 20px; background: var(--lime); }
 .accent-bar span:nth-child(3) { width: 12px; background: var(--pink); }
 
-/* Difficulty */
 .diff-wrap { display: flex; justify-content: center; gap: 8px; margin: 18px 0 0; }
 .diff-btn {
   padding: 8px 20px; border-radius: 20px;
@@ -181,7 +175,6 @@ h1.main-title {
 .diff-btn.medium.active { background: rgba(0,188,212,0.1);  border-color: var(--cyan); color: var(--navy); }
 .diff-btn.hard.active   { background: rgba(240,67,106,0.1); border-color: var(--pink); color: var(--pink); }
 
-/* Game cards */
 .game-list { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 20px; }
 .game-card {
   position: relative; border-radius: 16px; overflow: hidden;
@@ -224,7 +217,6 @@ h1.main-title {
 }
 .card-arrow { color: var(--cyan); font-size: 16px; align-self: center; margin-right: auto; padding-left: 6px; }
 
-/* Background loading indicator */
 .bg-loading-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
   height: 3px; background: rgba(26,35,126,0.08);
@@ -255,7 +247,6 @@ h1.main-title {
 .play-title { color: var(--navy); font-weight: 800; font-size: clamp(12px,3vw,15px); line-height: 1.2; }
 .play-date  { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
-/* Stats bar */
 .stats-bar {
   display: flex; justify-content: space-around; align-items: center;
   background: var(--surface);
@@ -272,11 +263,9 @@ h1.main-title {
 .heart { font-size: 15px; transition: all 0.3s; }
 .heart.lost { filter: grayscale(1) opacity(0.2); transform: scale(0.75); }
 
-/* Progress */
 .progress-wrap { height: 4px; background: rgba(26,35,126,0.08); border-radius: 4px; margin-bottom: 4px; overflow: hidden; flex-shrink: 0; }
 .progress-bar  { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--navy), var(--cyan)); transition: width 0.4s ease; width: 0%; }
 
-/* Timer bar */
 .timer-wrap { height: 4px; background: rgba(26,35,126,0.08); border-radius: 4px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; }
 .timer-bar {
   height: 100%; border-radius: 4px; width: 100%;
@@ -291,7 +280,6 @@ h1.main-title {
 .timer-bar.ticking { animation: timerTick linear forwards; }
 .timer-bar.urgent  { background: linear-gradient(90deg, var(--pink), #dc2626); }
 
-/* Stack area */
 .deck-area {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -312,7 +300,6 @@ h1.main-title {
   transform: translateY(22px) scale(0.90); opacity: 0.35;
 }
 
-/* Swipe card */
 .swipe-card {
   position: relative;
   width: calc(100% - 20px); max-width: 420px;
@@ -340,7 +327,6 @@ h1.main-title {
 }
 .swipe-card.card-in { animation: cardIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
 
-/* Stamps */
 .stamp {
   position: absolute; top: 14px;
   font-size: 18px; font-weight: 900; letter-spacing: 2px;
@@ -353,7 +339,6 @@ h1.main-title {
 .stamp-against { left: 14px;  color: var(--pink); border-color: var(--pink); transform: rotate(-14deg); }
 .stamp-abstain { top: 12px; left: 50%; transform: translateX(-50%); color: #d97706; border-color: #d97706; }
 
-/* Vote strip */
 .card-vote-strip {
   background: rgba(26,35,126,0.04);
   border: 1.5px solid rgba(26,35,126,0.1);
@@ -368,7 +353,6 @@ h1.main-title {
   font-size: 12px; font-weight: 700; color: var(--navy); line-height: 1.4;
 }
 
-/* MK body */
 .mk-body {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 9px; min-height: 0;
@@ -392,7 +376,6 @@ h1.main-title {
 }
 .mk-num { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; font-weight: 600; }
 
-/* Reveal badge */
 .reveal-badge {
   position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
   font-size: 11px; font-weight: 700; font-family: monospace;
@@ -404,7 +387,6 @@ h1.main-title {
 .reveal-badge.against { color: var(--pink); background: rgba(240,67,106,0.1); border: 1px solid rgba(240,67,106,0.3); }
 .reveal-badge.abstain { color: #d97706; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); }
 
-/* Controls */
 .controls {
   display: flex; align-items: center; justify-content: center;
   gap: 14px; padding: 8px 16px 4px; flex-shrink: 0;
@@ -435,7 +417,6 @@ h1.main-title {
   padding-bottom: 2px; flex-shrink: 0; font-family: monospace; font-weight: 600;
 }
 
-/* Streak */
 .streak-badge {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 12px; font-weight: 800; font-family: monospace;
@@ -455,7 +436,7 @@ h1.main-title {
 }
 .score-bump { animation: scoreBump 0.3s ease; }
 
-/* End screen */
+/* ══ END SCREEN ══ */
 @keyframes pop { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
 .end-screen-wrap {
   flex: 1; display: flex; flex-direction: column;
@@ -475,7 +456,88 @@ h1.main-title {
 .win-stat-value { color: var(--navy); font-weight: 900; font-size: 26px; font-family: monospace; }
 .win-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-/* Feedback */
+/* ══ LEADERBOARD ══ */
+.leaderboard-wrap {
+  width: 100%; max-width: 340px;
+  background: rgba(26,35,126,0.03);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.leaderboard-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--navy);
+  color: #fff;
+}
+.leaderboard-title {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+}
+.leaderboard-clear {
+  font-size: 10px; color: rgba(255,255,255,0.5);
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; font-weight: 600;
+  transition: color 0.15s;
+}
+.leaderboard-clear:hover { color: var(--pink); }
+.leaderboard-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-row.highlight {
+  background: rgba(0,188,212,0.07);
+  border-right: 3px solid var(--cyan);
+}
+.lb-rank {
+  font-size: 13px; font-weight: 900; font-family: monospace;
+  width: 20px; text-align: center; flex-shrink: 0;
+}
+.lb-rank-1 { color: #f59e0b; }
+.lb-rank-2 { color: #94a3b8; }
+.lb-rank-3 { color: #c2793c; }
+.lb-rank-n { color: var(--muted); }
+.lb-info { flex: 1; min-width: 0; }
+.lb-date {
+  font-size: 10px; color: var(--muted); font-weight: 500;
+}
+.lb-score {
+  font-size: 15px; font-weight: 900; font-family: monospace;
+  color: var(--navy); flex-shrink: 0;
+}
+.lb-acc {
+  font-size: 10px; font-weight: 700; padding: 1px 7px;
+  border-radius: 20px; flex-shrink: 0;
+}
+.lb-acc-hi  { background: rgba(22,163,74,0.1);  color: #16a34a; }
+.lb-acc-mid { background: rgba(0,188,212,0.1);  color: var(--navy); }
+.lb-acc-lo  { background: rgba(240,67,106,0.1); color: var(--pink); }
+.lb-empty {
+  padding: 16px; text-align: center;
+  color: var(--muted); font-size: 12px; font-weight: 500;
+}
+
+/* NEW RECORD BADGE */
+@keyframes newRecordPop {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+  60%  { opacity: 1; transform: scale(1.15) rotate(3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.new-record-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 900;
+  padding: 4px 14px; border-radius: 20px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  animation: newRecordPop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  box-shadow: 0 3px 12px rgba(245,158,11,0.4);
+  flex-shrink: 0;
+}
+
+/* FEEDBACK */
 .feedback-flash {
   position: fixed; inset: 0; z-index: 50; pointer-events: none;
   opacity: 0; transition: opacity 0.15s;
@@ -495,7 +557,7 @@ h1.main-title {
 .float-feedback.correct { color: #16a34a; background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.3); }
 .float-feedback.wrong   { color: var(--pink); background: rgba(240,67,106,0.1); border: 1px solid rgba(240,67,106,0.3); }
 
-/* Modal */
+/* MODAL */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(26,35,126,0.35); backdrop-filter: blur(6px);
@@ -523,7 +585,6 @@ h1.main-title {
 .modal-step-text { color: #4a5568; font-size: 14px; line-height: 1.6; }
 .modal-step-text strong { color: var(--navy); }
 
-/* Credit footer */
 .credit-footer {
   text-align: center;
   padding: 10px 16px 16px;
@@ -532,19 +593,14 @@ h1.main-title {
   font-weight: 500;
   flex-shrink: 0;
 }
-.credit-footer a {
-  color: var(--cyan);
-  text-decoration: none;
-  font-weight: 700;
-}
+.credit-footer a { color: var(--cyan); text-decoration: none; font-weight: 700; }
 
-/* Loading screen */
+/* LOADING */
 .load-logo-bar {
   display: flex; align-items: flex-end; gap: 4px; height: 44px; margin-bottom: 8px;
 }
 .load-logo-bar span {
-  border-radius: 3px 3px 0 0;
-  width: 11px;
+  border-radius: 3px 3px 0 0; width: 11px;
   animation: barPulse 1.2s ease-in-out infinite;
 }
 .load-logo-bar span:nth-child(1) { height: 44px; background: var(--cyan); animation-delay: 0s; }
@@ -562,9 +618,7 @@ h1.main-title {
   <!-- LOADING -->
   <div id="screen-loading" class="screen active">
     <div class="center">
-      <div class="load-logo-bar">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="load-logo-bar"><span></span><span></span><span></span></div>
       <div style="color:var(--navy);font-size:26px;font-weight:900;letter-spacing:-0.5px">מצביעים על זה</div>
       <div class="spinner"></div>
       <div id="load-msg" style="color:var(--muted);font-size:13px;max-width:300px;font-weight:500"></div>
@@ -584,13 +638,10 @@ h1.main-title {
   <!-- HOME -->
   <div id="screen-home" class="screen">
     <div class="home-wrap">
-
       <div style="text-align:center;margin-bottom:28px">
         <h1 class="main-title">🗳️ מצביעים על זה</h1>
         <p class="subtitle">נחש איך הצביעו חברי הכנסת</p>
-        <div class="accent-bar">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="accent-bar"><span></span><span></span><span></span></div>
         <button class="btn-help" onclick="openInstructions()" style="margin-top:14px">❓ איך משחקים?</button>
       </div>
 
@@ -605,10 +656,7 @@ h1.main-title {
       <div style="text-align:center;margin-bottom:8px">
         <button class="btn-refresh" onclick="renderHome()">🔀 הצבעות אחרות</button>
       </div>
-
     </div>
-
-    <!-- Credit -->
     <div class="credit-footer">פיתוח: גיל פלדמן</div>
   </div>
 
@@ -665,17 +713,14 @@ h1.main-title {
       <div class="deck-area" id="deck-area">
         <div class="stack-bg stack-bg-3"></div>
         <div class="stack-bg stack-bg-2"></div>
-
         <div id="swipe-card" class="swipe-card">
           <div class="stamp stamp-for"     id="stamp-for">✓ בעד</div>
           <div class="stamp stamp-against" id="stamp-against">✗ נגד</div>
           <div class="stamp stamp-abstain" id="stamp-abstain">↕ נמנע</div>
-
           <div class="card-vote-strip">
             <span class="card-vote-eyebrow">נושא ההצבעה</span>
             <div class="card-vote-name" id="card-vote-name">—</div>
           </div>
-
           <div class="mk-body">
             <div class="mk-avatar">👤</div>
             <div class="mk-name" id="mk-name">—</div>
@@ -692,9 +737,7 @@ h1.main-title {
       </div>
 
       <div class="swipe-hint" id="swipe-hint">
-        <span>⬅ בעד</span>
-        <span>⬆ נמנע</span>
-        <span>נגד ➡</span>
+        <span>⬅ בעד</span><span>⬆ נמנע</span><span>נגד ➡</span>
       </div>
 
       <div class="controls" id="controls">
@@ -765,9 +808,7 @@ h1.main-title {
       <button class="btn" style="background:rgba(22,163,74,0.1);border:1.5px solid rgba(22,163,74,0.4);color:#16a34a;flex:1;min-width:80px"
         onclick="submitSelfVote('for')">✓ בעד</button>
     </div>
-    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px;color:var(--muted)">
-      דלג
-    </button>
+    <button class="btn btn-ghost" onclick="submitSelfVote(null)" style="width:100%;margin-top:10px;font-size:13px;color:var(--muted)">דלג</button>
   </div>
 </div>
 
@@ -789,8 +830,10 @@ const API_BASES   = [
 ];
 const DETAIL_PATH   = "/WebSiteApi/knessetapi/Votes/GetVoteDetails/";
 const CACHE_KEY     = "knesset-swipe-cache-v2";
-const INITIAL_COUNT = 4;   // כמה הצבעות טוענים לפני שמציגים את הבית
-const CONCURRENCY   = 5;   // כמה בקשות מקביליות ברקע
+const LB_KEY        = "knesset-swipe-lb-v1";   // ← מפתח טבלת שיאים
+const LB_MAX        = 5;                         // ← מקסימום שורות
+const INITIAL_COUNT = 4;
+const CONCURRENCY   = 5;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function readCache()   { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch { return {}; } }
@@ -811,6 +854,90 @@ function showScreen(id) {
   document.getElementById("screen-" + id).classList.add("active");
 }
 function setLoadMsg(msg) { document.getElementById("load-msg").textContent = msg; }
+
+// ══════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════
+function readLeaderboard() {
+  try { return JSON.parse(localStorage.getItem(LB_KEY) || "[]"); } catch { return []; }
+}
+function writeLeaderboard(lb) {
+  try { localStorage.setItem(LB_KEY, JSON.stringify(lb)); } catch {}
+}
+
+/**
+ * שומר תוצאה חדשה בטבלת השיאים.
+ * מחזיר: { rank: מיקום (1-based), isNew: האם שיא חדש ברשימה }
+ */
+function saveToLeaderboard(score, accuracy) {
+  const lb = readLeaderboard();
+  const today = new Date();
+  const dateStr = `${today.getDate()}/${today.getMonth()+1}/${String(today.getFullYear()).slice(2)}`;
+  const entry = { score, accuracy, date: dateStr };
+
+  lb.push(entry);
+  lb.sort((a, b) => b.score - a.score);
+
+  // מוצאים את המיקום לפני קיצוץ
+  const rank = lb.findIndex(e => e === entry) + 1;
+  const isNew = rank <= LB_MAX;
+
+  // שומרים רק TOP-5
+  const trimmed = lb.slice(0, LB_MAX);
+  writeLeaderboard(trimmed);
+
+  return { rank, isNew };
+}
+
+/**
+ * מרנדר את טבלת השיאים — מחזיר HTML string.
+ * highlightScore: הניקוד של המשחק הנוכחי (כדי להדגיש את השורה).
+ */
+function renderLeaderboardHTML(highlightScore) {
+  const lb = readLeaderboard();
+
+  const rankIcons = ["🥇","🥈","🥉","4","5"];
+
+  const rows = lb.length === 0
+    ? `<div class="lb-empty">אין שיאים עדיין — היה הראשון!</div>`
+    : lb.map((e, i) => {
+        const isHL = e.score === highlightScore && i === lb.findIndex(x => x.score === highlightScore);
+        const accClass = e.accuracy >= 80 ? "lb-acc-hi" : e.accuracy >= 55 ? "lb-acc-mid" : "lb-acc-lo";
+        const rankClass = i < 3 ? `lb-rank-${i+1}` : "lb-rank-n";
+        return `
+          <div class="leaderboard-row${isHL ? " highlight" : ""}">
+            <span class="lb-rank ${rankClass}">${rankIcons[i] || i+1}</span>
+            <div class="lb-info">
+              <div class="lb-date">${esc(e.date)}</div>
+            </div>
+            <span class="lb-acc ${accClass}">${e.accuracy}%</span>
+            <span class="lb-score">${e.score.toLocaleString()}</span>
+          </div>`;
+      }).join("");
+
+  return `
+    <div class="leaderboard-wrap">
+      <div class="leaderboard-header">
+        <div>
+          <div class="leaderboard-title">🏆 שיאים אישיים</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:500;margin-top:1px">🔒 נשמרים במכשיר זה בלבד</div>
+        </div>
+        <button class="leaderboard-clear" onclick="clearLeaderboard()">איפוס</button>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function clearLeaderboard() {
+  if (!confirm("למחוק את כל השיאים?")) return;
+  writeLeaderboard([]);
+  // מרנדר מחדש את end-screen אם פתוח
+  const inner = document.getElementById("end-screen-inner");
+  if (inner) {
+    const lbWrap = inner.querySelector(".leaderboard-wrap");
+    if (lbWrap) lbWrap.outerHTML = renderLeaderboardHTML(null);
+  }
+}
 
 // ══════════════════════════════════════════════
 // DATA
@@ -848,11 +975,9 @@ function normalizeVote(title) {
   return null;
 }
 
-// ── פונקציית עזר: fetch מקבילי עם הגבלת concurrency ──────────────
 async function fetchWithConcurrency(items, fn, limit, onDone) {
   const results = [];
   let i = 0;
-
   async function runNext() {
     if (i >= items.length) return;
     const idx = i++;
@@ -865,13 +990,11 @@ async function fetchWithConcurrency(items, fn, limit, onDone) {
     } catch (_) {}
     await runNext();
   }
-
   const workers = Array.from({ length: Math.min(limit, items.length) }, runNext);
   await Promise.all(workers);
   return results;
 }
 
-// ── בנייה של אובייקט game מנתוני API ──────────────────────────────
 function buildGame(row, data) {
   const header  = data.VoteHeader?.[0] || {};
   const members = (data.VoteDetails || [])
@@ -892,21 +1015,13 @@ function buildGame(row, data) {
   };
 }
 
-// ── טעינה ראשונית: 4 הצבעות מהירות ──────────────────────────────
 async function loadInitial(rows, cache) {
   setLoadMsg("טוען…");
-
-  // מפריד בין כאלה שיש בcache לכאלה שצריך לטעון
-  const cached    = rows.filter(r => cache[r.voteId]).map(r => cache[r.voteId]);
-  const uncached  = rows.filter(r => !cache[r.voteId]);
-
-  // אם יש מספיק ב-cache — מחזיר מיד
+  const cached   = rows.filter(r => cache[r.voteId]).map(r => cache[r.voteId]);
+  const uncached = rows.filter(r => !cache[r.voteId]);
   if (cached.length >= INITIAL_COUNT) return cached;
-
-  // אחרת — טוענים את הראשונות במקביל עד שיש INITIAL_COUNT
   const needed = INITIAL_COUNT - cached.length;
   const batch  = uncached.slice(0, needed);
-
   const fetched = await Promise.all(
     batch.map(async row => {
       try {
@@ -917,22 +1032,17 @@ async function loadInitial(rows, cache) {
       } catch (_) { return null; }
     })
   );
-
   return [...cached, ...fetched.filter(Boolean)];
 }
 
-// ── טעינה ברקע: שאר ההצבעות עם concurrency limit ─────────────────
 async function loadBackground(rows, cache) {
   const uncached = rows.filter(r => !cache[r.voteId]);
   if (!uncached.length) return;
-
   const total = uncached.length;
   let loaded  = 0;
-
-  const bar     = document.getElementById("bg-loading-bar");
-  const fill    = document.getElementById("bg-loading-fill");
+  const bar  = document.getElementById("bg-loading-bar");
+  const fill = document.getElementById("bg-loading-fill");
   bar.style.opacity = "1";
-
   await fetchWithConcurrency(
     uncached,
     async (row) => {
@@ -944,22 +1054,14 @@ async function loadBackground(rows, cache) {
       if (!game) return;
       cache[game.voteId] = game;
       writeCache(cache);
-
-      // מוסיף ל-allGames רק אם לא קיים כבר
-      if (!allGames.find(g => g.voteId === game.voteId)) {
-        allGames.push(game);
-      }
-
+      if (!allGames.find(g => g.voteId === game.voteId)) allGames.push(game);
       loaded++;
       fill.style.width = `${Math.round((loaded / total) * 100)}%`;
     }
   );
-
-  // מסתיר את הפס לאחר סיום
   setTimeout(() => { bar.style.opacity = "0"; }, 800);
 }
 
-// ── loadGames: פונקציה ראשית ──────────────────────────────────────
 async function loadGames(bustCache = false) {
   showScreen("loading");
   setLoadMsg("טוען…");
@@ -967,28 +1069,23 @@ async function loadGames(bustCache = false) {
     if (bustCache) writeCache({});
     const rows  = await fetchSheetRows();
     if (!rows.length) throw new Error("לא נמצאו משחקים פעילים זמינים");
-
     const cache = readCache();
-
-    // שלב 1: טוענים INITIAL_COUNT הצבעות ומציגים בית
     const initial = await loadInitial(rows, cache);
     if (!initial.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
-
     writeCache(cache);
     allGames = initial;
     renderHome();
     showScreen("home");
-
-    // שלב 2: טוענים את השאר ברקע — לא חוסמים את המשתמש
     loadBackground(rows, cache).catch(() => {});
-
   } catch (e) {
     document.getElementById("error-msg").textContent = e.message;
     showScreen("error");
   }
 }
 
-// ── Difficulty ─────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// DIFFICULTY
+// ══════════════════════════════════════════════
 const DIFF_COUNT   = { easy: 10, medium: 20, hard: 30 };
 const DIFF_SECONDS = { easy: 10, medium: 6,  hard: 4  };
 let currentDiff = "medium";
@@ -1044,15 +1141,12 @@ let cardTimer = null;
 function startGame(idx) {
   savedIdx = idx;
   const game = allGames[idx];
-
-  document.getElementById("self-vote-topic").textContent =
-    `"${game.shortName || game.title}"`;
+  document.getElementById("self-vote-topic").textContent = `"${game.shortName || game.title}"`;
   document.getElementById("modal-self-vote").style.display = "flex";
 }
 
 function submitSelfVote(choice) {
   document.getElementById("modal-self-vote").style.display = "none";
-
   const game  = allGames[savedIdx];
   const count = Math.min(game.members.length, DIFF_COUNT[currentDiff]);
   const BIBI  = "נתניהו בנימין";
@@ -1103,18 +1197,14 @@ function startCardTimer() {
   cardStartTime = Date.now();
   const secs = DIFF_SECONDS[currentDiff];
   const bar  = document.getElementById("timer-bar");
-
   bar.classList.remove("ticking", "urgent");
   bar.style.animationDuration = "";
   void bar.offsetWidth;
-
   bar.style.animationDuration = secs + "s";
   bar.classList.add("ticking");
 
   const urgentDelay = Math.max(0, (secs - 2) * 1000);
-  cardTimer = setTimeout(() => {
-    bar.classList.add("urgent");
-  }, urgentDelay);
+  cardTimer = setTimeout(() => { bar.classList.add("urgent"); }, urgentDelay);
 
   cardTimer = setTimeout(() => {
     if (!gs || locked || gs.over) return;
@@ -1123,12 +1213,10 @@ function startCardTimer() {
     const mk     = gs.deck[gs.idx];
     const labels = { for: "בעד", against: "נגד", abstain: "נמנע" };
     showFeedback(false, `⏱ פג הזמן! הצביע ${labels[mk.vote] || "?"}`);
-
     const card = document.getElementById("swipe-card");
     card.style.transition = "box-shadow 0.15s";
     card.style.boxShadow  = "0 0 0 3px rgba(240,67,106,0.6)";
     setTimeout(() => { card.style.boxShadow = ""; }, 400);
-
     locked = true;
     updateStatsUI();
     setTimeout(() => {
@@ -1154,18 +1242,14 @@ function stopCardTimer() {
 function renderCard(first = false) {
   if (gs.idx >= gs.total) { endGame(true); return; }
   const mk = gs.deck[gs.idx];
-
   document.getElementById("card-vote-name").textContent = gs.game.shortName || gs.game.title;
   document.getElementById("mk-name").textContent = mk.name;
   document.getElementById("mk-num").textContent  = `כרטיס ${gs.idx + 1} מתוך ${gs.total}`;
-
   ["stamp-for","stamp-against","stamp-abstain"].forEach(id => {
     document.getElementById(id).style.opacity = "0";
   });
-
   const rb = document.getElementById("reveal-badge");
   rb.className = "reveal-badge"; rb.textContent = "";
-
   const card = document.getElementById("swipe-card");
   card.style.transition = "";
   card.style.transform  = "";
@@ -1173,7 +1257,6 @@ function renderCard(first = false) {
   card.classList.remove("animating","fly-right","fly-left","fly-up","card-in");
   void card.offsetWidth;
   if (!first) card.classList.add("card-in");
-
   updateStatsUI();
   if (!first) startCardTimer();
   else setTimeout(() => startCardTimer(), 350);
@@ -1201,31 +1284,24 @@ function doSwipe(direction) {
     const secs      = DIFF_SECONDS[currentDiff];
     const elapsed   = (Date.now() - cardStartTime) / 1000;
     const timeRatio = Math.max(0, 1 - elapsed / secs);
-
     const base  = { easy: 100, medium: 150, hard: 200 }[currentDiff];
     const speed = Math.round(base * 0.5 * timeRatio);
-
     gs.streak++;
     if (gs.streak > gs.maxStreak) gs.maxStreak = gs.streak;
-    const mult = gs.streak >= 5 ? 3 : gs.streak >= 3 ? 2 : 1;
-
+    const mult   = gs.streak >= 5 ? 3 : gs.streak >= 3 ? 2 : 1;
     const earned = (base + speed) * mult;
     gs.score     += earned;
     gs.baseScore  += base;
     gs.speedBonus += speed;
-
     const parts = [`✓ נכון! +${earned}`];
-    if (speed > 0)  parts.push(`⚡+${speed}`);
-    if (mult  > 1)  parts.push(`🔥×${mult}`);
+    if (speed > 0) parts.push(`⚡+${speed}`);
+    if (mult  > 1) parts.push(`🔥×${mult}`);
     showFeedback(true, parts.join("  "));
-
     updateStatsUI();
-
     const sv = document.getElementById("stat-score");
     sv.classList.remove("score-bump");
     void sv.offsetWidth;
     sv.classList.add("score-bump");
-
   } else {
     gs.streak = 0;
     gs.lives--;
@@ -1251,7 +1327,6 @@ function showFeedback(correct, msg) {
   flash.className = "feedback-flash " + (correct ? "green" : "red");
   flash.style.opacity = "1";
   setTimeout(() => { flash.style.opacity = "0"; }, 380);
-
   const text = document.getElementById("float-feedback");
   text.className  = "float-feedback " + (correct ? "correct" : "wrong");
   text.textContent = msg;
@@ -1263,12 +1338,15 @@ function endGame(won) {
   gs.over = true; locked = false;
   stopCardTimer();
 
-  const answered  = gs.idx;
-  const basePerQ  = { easy: 100, medium: 150, hard: 200 }[currentDiff];
+  const answered   = gs.idx;
+  const basePerQ   = { easy: 100, medium: 150, hard: 200 }[currentDiff];
   const correctCount = Math.round(gs.baseScore / basePerQ);
-  const pct       = Math.round((correctCount / Math.max(answered, 1)) * 100);
-  const gameName  = gs.game.shortName || gs.game.title;
+  const pct        = Math.round((correctCount / Math.max(answered, 1)) * 100);
+  const gameName   = gs.game.shortName || gs.game.title;
   const streakBonus = gs.score - gs.baseScore - gs.speedBonus;
+
+  // ── שמירה בטבלת שיאים ──
+  const { rank, isNew } = saveToLeaderboard(gs.score, pct);
 
   const voteLabels = { for: "בעד", against: "נגד", abstain: "נמנע" };
   fetch(SWIPE_URL, {
@@ -1299,9 +1377,17 @@ function endGame(won) {
   document.getElementById("swipe-hint").style.display = "none";
   document.getElementById("end-screen").style.display = "flex";
 
+  // ── New Record Badge ──
+  const newRecordHTML = isNew && rank === 1
+    ? `<div class="new-record-badge">🏆 שיא חדש!</div>`
+    : isNew
+    ? `<div class="new-record-badge" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)">🎉 נכנסת לטופ 5!</div>`
+    : "";
+
   document.getElementById("end-screen-inner").innerHTML = `
     <div style="font-size:52px">${won ? "🏆" : "💔"}</div>
     <h2 style="color:var(--navy);font-size:24px;margin:0;font-weight:900">${won ? "כל הכבוד!" : "נפסלת!"}</h2>
+    ${newRecordHTML}
     <p style="color:var(--muted);font-size:13px;margin:0">
       ${won ? `סיימת את כל ${gs.total} הכרטיסים!` : `ניחשת נכון ${correctCount} מתוך ${answered} ח"כים`}
     </p>
@@ -1332,6 +1418,9 @@ function endGame(won) {
       <div><div class="win-stat-label">🎯 דיוק</div><div class="win-stat-value">${pct}%</div></div>
       <div><div class="win-stat-label">🔥 רצף מקס'</div><div class="win-stat-value">${gs.maxStreak}</div></div>
     </div>
+
+    ${renderLeaderboardHTML(gs.score)}
+
     <div style="display:flex;gap:8px;justify-content:center;width:100%;margin-top:4px">
       <button class="btn btn-blue" onclick="restartGame()" style="flex:1;font-size:13px;padding:10px 8px">🔄 שחק שוב</button>
       <button class="btn btn-ghost" onclick="showHome()" style="flex:1;font-size:13px;padding:10px 8px">🏠 בחר הצבעה</button>
@@ -1361,7 +1450,6 @@ function setupSwipe() {
     if (!ctx.active || !dragging) return;
     dx = x - startX; dy = y - startY;
     card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.055}deg)`;
-
     const ax = Math.abs(dx), ay = Math.abs(dy), thr = 45;
     const sf = document.getElementById("stamp-for");
     const sa = document.getElementById("stamp-against");
