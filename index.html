@@ -224,6 +224,19 @@ h1.main-title {
 }
 .card-arrow { color: var(--cyan); font-size: 16px; align-self: center; margin-right: auto; padding-left: 6px; }
 
+/* Background loading indicator */
+.bg-loading-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(26,35,126,0.08);
+  z-index: 50; transition: opacity 0.5s;
+}
+.bg-loading-fill {
+  height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime));
+  border-radius: 0 2px 2px 0;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
 /* ══ PLAY ══ */
 #screen-play { height: 100dvh; overflow: hidden; display: none; }
 #screen-play.active { display: flex; flex-direction: column; }
@@ -758,6 +771,11 @@ h1.main-title {
   </div>
 </div>
 
+<!-- Background loading bar -->
+<div class="bg-loading-bar" id="bg-loading-bar" style="opacity:0">
+  <div class="bg-loading-fill" id="bg-loading-fill"></div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -769,8 +787,10 @@ const API_BASES   = [
   "https://knesset.gov.il",
   "https://main.knesset.gov.il",
 ];
-const DETAIL_PATH = "/WebSiteApi/knessetapi/Votes/GetVoteDetails/";
-const CACHE_KEY   = "knesset-swipe-cache-v2";
+const DETAIL_PATH   = "/WebSiteApi/knessetapi/Votes/GetVoteDetails/";
+const CACHE_KEY     = "knesset-swipe-cache-v2";
+const INITIAL_COUNT = 4;   // כמה הצבעות טוענים לפני שמציגים את הבית
+const CONCURRENCY   = 5;   // כמה בקשות מקביליות ברקע
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function readCache()   { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch { return {}; } }
@@ -828,51 +848,140 @@ function normalizeVote(title) {
   return null;
 }
 
+// ── פונקציית עזר: fetch מקבילי עם הגבלת concurrency ──────────────
+async function fetchWithConcurrency(items, fn, limit, onDone) {
+  const results = [];
+  let i = 0;
+
+  async function runNext() {
+    if (i >= items.length) return;
+    const idx = i++;
+    try {
+      const result = await fn(items[idx], idx);
+      if (result) {
+        results.push(result);
+        if (onDone) onDone(result, results.length, items.length);
+      }
+    } catch (_) {}
+    await runNext();
+  }
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, runNext);
+  await Promise.all(workers);
+  return results;
+}
+
+// ── בנייה של אובייקט game מנתוני API ──────────────────────────────
+function buildGame(row, data) {
+  const header  = data.VoteHeader?.[0] || {};
+  const members = (data.VoteDetails || [])
+    .filter(d => normalizeVote(d.Title))
+    .map(d => ({
+      name:    (d.MkName || "").trim(),
+      vote:    normalizeVote(d.Title),
+      faction: (d.FactionName || "").trim(),
+    }));
+  if (members.length < 3) return null;
+  return {
+    voteId:    row.voteId,
+    title:     header.ItemTitle   || "ללא כותרת",
+    shortName: row.shortName      || "",
+    date:      header.VoteDateStr || "",
+    decision:  header.Decision    || "",
+    members,
+  };
+}
+
+// ── טעינה ראשונית: 4 הצבעות מהירות ──────────────────────────────
+async function loadInitial(rows, cache) {
+  setLoadMsg("טוען…");
+
+  // מפריד בין כאלה שיש בcache לכאלה שצריך לטעון
+  const cached    = rows.filter(r => cache[r.voteId]).map(r => cache[r.voteId]);
+  const uncached  = rows.filter(r => !cache[r.voteId]);
+
+  // אם יש מספיק ב-cache — מחזיר מיד
+  if (cached.length >= INITIAL_COUNT) return cached;
+
+  // אחרת — טוענים את הראשונות במקביל עד שיש INITIAL_COUNT
+  const needed = INITIAL_COUNT - cached.length;
+  const batch  = uncached.slice(0, needed);
+
+  const fetched = await Promise.all(
+    batch.map(async row => {
+      try {
+        const data = await fetchVoteDetails(row.voteId);
+        const game = buildGame(row, data);
+        if (game) { cache[row.voteId] = game; }
+        return game;
+      } catch (_) { return null; }
+    })
+  );
+
+  return [...cached, ...fetched.filter(Boolean)];
+}
+
+// ── טעינה ברקע: שאר ההצבעות עם concurrency limit ─────────────────
+async function loadBackground(rows, cache) {
+  const uncached = rows.filter(r => !cache[r.voteId]);
+  if (!uncached.length) return;
+
+  const total = uncached.length;
+  let loaded  = 0;
+
+  const bar     = document.getElementById("bg-loading-bar");
+  const fill    = document.getElementById("bg-loading-fill");
+  bar.style.opacity = "1";
+
+  await fetchWithConcurrency(
+    uncached,
+    async (row) => {
+      const data = await fetchVoteDetails(row.voteId);
+      return buildGame(row, data);
+    },
+    CONCURRENCY,
+    (game) => {
+      if (!game) return;
+      cache[game.voteId] = game;
+      writeCache(cache);
+
+      // מוסיף ל-allGames רק אם לא קיים כבר
+      if (!allGames.find(g => g.voteId === game.voteId)) {
+        allGames.push(game);
+      }
+
+      loaded++;
+      fill.style.width = `${Math.round((loaded / total) * 100)}%`;
+    }
+  );
+
+  // מסתיר את הפס לאחר סיום
+  setTimeout(() => { bar.style.opacity = "0"; }, 800);
+}
+
+// ── loadGames: פונקציה ראשית ──────────────────────────────────────
 async function loadGames(bustCache = false) {
   showScreen("loading");
-  setLoadMsg("המשחק בטעינה…");
+  setLoadMsg("טוען…");
   try {
     if (bustCache) writeCache({});
     const rows  = await fetchSheetRows();
     if (!rows.length) throw new Error("לא נמצאו משחקים פעילים זמינים");
+
     const cache = readCache();
-    const games = [];
 
-    for (let i = 0; i < rows.length; i++) {
-      const { voteId } = rows[i];
-      setLoadMsg(`טוען הצבעה ${i + 1} מתוך ${rows.length}…`);
-      if (cache[voteId]) { games.push(cache[voteId]); continue; }
-      try {
-        const data   = await fetchVoteDetails(voteId);
-        const header = data.VoteHeader?.[0] || {};
-        const members = (data.VoteDetails || [])
-          .filter(d => normalizeVote(d.Title))
-          .map(d => ({
-            name:    (d.MkName || "").trim(),
-            vote:    normalizeVote(d.Title),
-            faction: (d.FactionName || "").trim(),
-          }));
-
-        if (members.length < 3) continue;
-
-        const game = {
-          voteId,
-          title:     header.ItemTitle   || "ללא כותרת",
-          shortName: rows[i].shortName  || "",
-          date:      header.VoteDateStr || "",
-          decision:  header.Decision    || "",
-          members,
-        };
-        cache[voteId] = game;
-        games.push(game);
-      } catch (e) { console.warn("Skip", voteId, e.message); }
-    }
+    // שלב 1: טוענים INITIAL_COUNT הצבעות ומציגים בית
+    const initial = await loadInitial(rows, cache);
+    if (!initial.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
 
     writeCache(cache);
-    allGames = games;
-    if (!games.length) throw new Error("לא נמצאו הצבעות תקינות בגיליון");
+    allGames = initial;
     renderHome();
     showScreen("home");
+
+    // שלב 2: טוענים את השאר ברקע — לא חוסמים את המשתמש
+    loadBackground(rows, cache).catch(() => {});
+
   } catch (e) {
     document.getElementById("error-msg").textContent = e.message;
     showScreen("error");
